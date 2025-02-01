@@ -13,7 +13,10 @@ export async function Nav() {
           <Link href="/" className="flex items-center space-x-2">
             <span className="font-bold">HackMate</span>
           </Link>
-          <div className="flex items-center space-x-6 text-sm font-medium">
+          <div className="flex items-center text-sm font-medium">
+            <Link href="/inspiration">
+              <Button variant="ghost">Inspiration</Button>
+            </Link>
             <Link href="/readme">
               <Button variant="ghost">README Generator</Button>
             </Link>

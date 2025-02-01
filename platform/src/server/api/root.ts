@@ -1,5 +1,7 @@
-import { readmeRouter } from "~/server/api/routers/readme";
-import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { createTRPCRouter } from "~/server/api/trpc";
+import { readmeRouter } from "./routers/readme";
+import { hackathonRouter } from "./routers/hackathon";
+import { createCallerFactory } from "~/server/api/trpc";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +10,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   readme: readmeRouter,
+  hackathon: hackathonRouter,
 });
 
 // export type definition of API

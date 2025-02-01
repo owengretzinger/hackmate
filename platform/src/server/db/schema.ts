@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   index,
   integer,
+  json,
   pgTableCreator,
   primaryKey,
   text,
@@ -127,3 +128,48 @@ export const verificationTokens = createTable(
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   }),
 );
+
+export const hackathonProjects = createTable('hackathon_projects', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  tagline: text('tagline'),
+  description: text('description'),
+  devpostUrl: text('devpost_url').notNull().unique(),
+  thumbnail: text('thumbnail_url'),
+  technologies: json('technologies').$type<Array<{
+    name: string;
+    url?: string;
+    isRecognized: boolean;
+  }>>().notNull().default([]),
+  awards: json('awards').$type<Array<{
+    category: string;
+    place: string;
+    description: string | null;
+    prize?: string;
+  }>>().notNull().default([]),
+  demoVideo: json('demo_video').$type<{
+    url: string;
+    type: 'youtube' | 'vimeo' | 'other';
+    videoId?: string;
+  } | null>(),
+  galleryImages: json('gallery_images').$type<Array<{
+    url: string;
+    caption?: string;
+  }>>().notNull().default([]),
+  teamSize: integer('team_size'),
+  githubUrl: text('github_url'),
+  teamMembers: json('team_members').$type<Array<{
+    name: string;
+    profileUrl: string;
+    avatarUrl?: string;
+    role?: string;
+  }>>().notNull().default([]),
+  engagement: json('engagement').$type<{
+    likes: number;
+    comments: number;
+  }>().notNull().default({ likes: 0, comments: 0 }),
+  hackathonUrl: text('hackathon_url').notNull(),
+  hackathonName: text('hackathon_name').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
