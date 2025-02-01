@@ -1,0 +1,57 @@
+---
+description: 
+globs: 
+---
+# HackMate Hackathon Assistant Rules
+
+## Project Context
+- 24-hour GDSC Mac-a-Thon project
+- Must use Google Cloud/Firebase technologies
+- Judging criteria weighted equally across:
+  - Technical Complexity (25%)
+  - Innovation & Creativity (25%)
+  - Impact & Practicality (25%)
+  - Presentation & Demo (25%)
+
+## Technology Guidelines
+- Prefer T3 Stack (Next.js, TypeScript, tRPC)
+- Must incorporate Google Cloud services where possible
+- Focus on hackathon-feasible implementations
+- Prioritize rapid development patterns
+
+## Code Response Rules
+- Always include language identifier in code blocks
+- Specify file paths for existing file changes
+- Focus on relevant code changes, use "// ... existing code ..." for context
+- Keep suggestions practical for 24-hour implementation
+- Consider judging criteria impact when suggesting features
+
+## Architecture Preferences
+- Use Firebase for backend/database where possible
+- Leverage Vertex AI over other AI providers
+- Keep components modular for presentation/demo purposes
+- Prioritize type safety with TypeScript
+
+## Feature Scope
+- Project scraping/similarity analysis
+- Documentation generation
+- Pitch recording/feedback
+- Must demonstrate clear AI/ML integration
+
+## Pattern: /**/*.tsx
+- Prefer functional components
+- Use TypeScript strictly
+- Include component prop types
+- Keep UI components focused and reusable
+
+## Pattern: /**/*.ts
+- Maintain type safety
+- Document complex functions
+- Keep Firebase/Google Cloud integration clean
+- Handle errors gracefully
+
+## Pattern: /src/server/**/*
+- Use tRPC for type-safe APIs
+- Integrate Google Cloud services appropriately
+- Keep performance in mind
+- Handle errors consistently 
