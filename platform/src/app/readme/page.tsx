@@ -143,7 +143,7 @@ export default function ReadmePage() {
                           className={cn(
                             "flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors",
                             viewMode === "preview" 
-                              ? "bg-white text-foreground shadow-sm hover:bg-white" 
+                              ? "bg-background text-foreground shadow-sm hover:bg-background" 
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
@@ -157,7 +157,7 @@ export default function ReadmePage() {
                           className={cn(
                             "flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors",
                             viewMode === "code" 
-                              ? "bg-white text-foreground shadow-sm hover:bg-white" 
+                              ? "bg-background text-foreground shadow-sm hover:bg-background" 
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
