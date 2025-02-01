@@ -4,6 +4,13 @@ globs:
 ---
 # HackMate Hackathon Assistant Rules
 
+## Import Notes
+
+- T3 Stack (Next.js, TypeScript, tRPC, Drizzle)
+- Using Google Cloud SQL PostgreSQL
+- T3 project is inside `/platform` directory
+- Always gather relevant context before answering or generating code
+
 ## Project Context
 - 24-hour GDSC Mac-a-Thon project
 - Must use Google Cloud/Firebase technologies
@@ -55,3 +62,5 @@ globs:
 - Integrate Google Cloud services appropriately
 - Keep performance in mind
 - Handle errors consistently 
+
+
