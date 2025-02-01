@@ -4,7 +4,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
-import { generateReadmeWithAI } from "~/server/vertex-ai";
+import { generateReadmeWithAI } from "~/utils/vertex-ai";
 
 const execAsync = promisify(exec);
 
