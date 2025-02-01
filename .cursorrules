@@ -6,6 +6,7 @@
 - T3 project is inside `/platform` directory
 - Always gather relevant context before answering or generating code
 - Always use shadcn (add components using `npx shadcn@latest add <component>`)
+- Always check current working directory before running commands
 
 ## Project Context
 - 24-hour GDSC Mac-a-Thon project

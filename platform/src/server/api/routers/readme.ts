@@ -4,6 +4,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
+import { generateReadmeWithAI } from "~/server/vertex-ai";
 
 const execAsync = promisify(exec);
 
@@ -52,10 +53,9 @@ export const readmeRouter = createTRPCRouter({
 
         console.log("Packed file length:", packedContent.length);
 
-        // TODO: Use Vertex AI to generate README
-        // For now, return a mock response
-        console.log("Generating README...");
-        const mockReadme = "# Generated README\n\nThis is a mock README generated for testing purposes.";
+        // Generate README using Vertex AI
+        console.log("Generating README with Vertex AI...");
+        const generatedReadme = await generateReadmeWithAI(packedContent);
 
         // Clean up
         console.log("Cleaning up...");
@@ -63,7 +63,7 @@ export const readmeRouter = createTRPCRouter({
 
         return {
           success: true,
-          readme: mockReadme,
+          readme: generatedReadme,
           repomixOutput: packedContent,
         };
       } catch (error) {
