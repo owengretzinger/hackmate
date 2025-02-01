@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import Mermaid from "~/components/mermaid";
 import { cn } from "~/lib/utils";
+import ReactMarkdown from 'react-markdown';
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
@@ -146,14 +147,38 @@ const UrlForm = ({ onSubmit, isLoading }: UrlFormProps) => {
   );
 };
 
+interface ContentViewProps {
+  viewMode: "preview" | "code";
+  content: string;
+  className?: string;
+}
+
+const ContentView = ({ viewMode, content, className }: ContentViewProps) => {
+  if (viewMode === "code") {
+    return (
+      <pre className={cn("whitespace-pre-wrap rounded-lg bg-muted p-4 text-sm", className)}>
+        <code>{content}</code>
+      </pre>
+    );
+  }
+
+  return (
+    <div className={cn("prose dark:prose-invert max-w-none rounded-lg bg-muted p-4", className)}>
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  );
+};
+
 export default function ReadmePage() {
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
   const [generatedDiagram, setGeneratedDiagram] = useState<string | null>(null);
   const [repomixOutput, setRepomixOutput] = useState<string | null>(null);
   const [showRepomixOutput, setShowRepomixOutput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("preview");
+  const [diagramViewMode, setDiagramViewMode] = useState<ViewMode>("preview");
+  const [readmeViewMode, setReadmeViewMode] = useState<ViewMode>("preview");
   const [isCopied, setIsCopied] = useState(false);
+  const [isReadmeCopied, setIsReadmeCopied] = useState(false);
   const { toast } = useToast();
 
   const generateReadme = api.readme.generateReadme.useMutation({
@@ -258,6 +283,13 @@ export default function ReadmePage() {
     }
   };
 
+  const handleCopyReadme = async () => {
+    if (!generatedReadme) return;
+    await navigator.clipboard.writeText(generatedReadme);
+    setIsReadmeCopied(true);
+    setTimeout(() => setIsReadmeCopied(false), 2000);
+  };
+
   return (
     <>
       <div className="container mx-auto py-10">
@@ -281,11 +313,14 @@ export default function ReadmePage() {
                         Architecture Diagram
                       </h3>
                       <div className="flex items-center gap-2">
-                        <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+                        <ViewModeToggle 
+                          viewMode={diagramViewMode} 
+                          setViewMode={setDiagramViewMode} 
+                        />
                         <ActionButton
-                          onClick={viewMode === "preview" ? downloadSvgAsPng : handleCopyCode}
+                          onClick={diagramViewMode === "preview" ? downloadSvgAsPng : handleCopyCode}
                           icon={
-                            viewMode === "preview" ? (
+                            diagramViewMode === "preview" ? (
                               <Download className="h-4 w-4" />
                             ) : isCopied ? (
                               <Check className="h-4 w-4" />
@@ -296,18 +331,37 @@ export default function ReadmePage() {
                         />
                       </div>
                     </div>
-                    <Mermaid chart={generatedDiagram} viewMode={viewMode} />
+                    <Mermaid chart={generatedDiagram} viewMode={diagramViewMode} />
                   </div>
                 )}
 
                 {generatedReadme && (
                   <div>
-                    <h3 className="mb-4 text-lg font-semibold">
-                      Generated README:
-                    </h3>
-                    <pre className="whitespace-pre-wrap rounded-lg bg-muted p-4">
-                      {generatedReadme}
-                    </pre>
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">
+                        Generated README
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <ViewModeToggle 
+                          viewMode={readmeViewMode} 
+                          setViewMode={setReadmeViewMode} 
+                        />
+                        <ActionButton
+                          onClick={handleCopyReadme}
+                          icon={
+                            isReadmeCopied ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                    <ContentView 
+                      content={generatedReadme} 
+                      viewMode={readmeViewMode}
+                    />
                   </div>
                 )}
 
