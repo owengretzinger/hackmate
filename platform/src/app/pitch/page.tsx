@@ -13,11 +13,16 @@ import { Textarea } from "~/components/ui/textarea";
 import { Button } from "~/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { api } from "~/trpc/react";
-import { Loader2, Mic, StopCircle } from "lucide-react";
+import { Loader2, Mic, StopCircle, Copy, Check } from "lucide-react";
+import { ViewModeToggle, type ViewMode } from "~/components/view-mode-toggle";
+import { ContentView } from "~/components/content-view";
+import { ActionButton } from "~/components/action-button";
 
 export default function PitchPage() {
   const [activeTab, setActiveTab] = useState("templates");
   const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>("preview");
+  const [isCopied, setIsCopied] = useState(false);
   const [projectDetails, setProjectDetails] = useState({
     title: "",
     description: "",
@@ -90,6 +95,13 @@ export default function PitchPage() {
       console.error("Error generating pitch:", error);
       alert("Failed to generate pitch. Please try again.");
     }
+  };
+
+  const handleCopyPitch = async () => {
+    if (!generatePitch.data?.pitchDraft) return;
+    await navigator.clipboard.writeText(generatePitch.data.pitchDraft);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   return (
@@ -212,23 +224,40 @@ export default function PitchPage() {
         <TabsContent value="draft">
           <Card>
             <CardHeader>
-              <CardTitle>Generated Pitch Draft</CardTitle>
-              <CardDescription>
-                Review and customize your generated pitch draft
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Generated Pitch Draft</CardTitle>
+                  <CardDescription>
+                    Review and customize your generated pitch draft
+                  </CardDescription>
+                </div>
+                {generatePitch.data?.pitchDraft && (
+                  <div className="flex items-center gap-2">
+                    <ViewModeToggle
+                      viewMode={viewMode}
+                      setViewMode={setViewMode}
+                    />
+                    <ActionButton
+                      onClick={handleCopyPitch}
+                      icon={
+                        isCopied ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )
+                      }
+                    />
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {generatePitch.data?.pitchDraft ? (
-                <div className="prose max-w-none dark:prose-invert">
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: generatePitch.data.pitchDraft.replace(
-                        /\n/g,
-                        "<br />",
-                      ),
-                    }}
-                  />
-                </div>
+                <ContentView
+                  content={generatePitch.data.pitchDraft}
+                  viewMode={viewMode}
+                  className="min-h-[600px]"
+                />
               ) : (
                 <div className="text-center text-muted-foreground">
                   Generate a pitch draft first
