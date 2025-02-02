@@ -2,12 +2,9 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { auth, signOut } from "~/server/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const links = [
-  {
-    href: "/projects",
-    label: "Projects",
-  },
   {
     href: "/inspiration",
     label: "Inspiration",
@@ -40,8 +37,11 @@ export async function Nav() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center">
           <ThemeToggle />
+          <Link href={session?.user ? "/projects" : "/signin"}>
+            <Button variant="ghost">My Projects</Button>
+          </Link>
           {session?.user ? (
             <form
               action={async () => {
@@ -49,7 +49,20 @@ export async function Nav() {
                 await signOut();
               }}
             >
-              <Button variant="ghost" type="submit">
+              <Button
+                variant="ghost"
+                type="submit"
+                className="flex items-center gap-2"
+              >
+                <Avatar className="h-6 w-6">
+                  <AvatarImage
+                    src={session.user.image ?? undefined}
+                    alt={session.user.name ?? "User"}
+                  />
+                  <AvatarFallback>
+                    {session.user.name?.[0]?.toUpperCase() ?? "U"}
+                  </AvatarFallback>
+                </Avatar>
                 Sign out
               </Button>
             </form>
