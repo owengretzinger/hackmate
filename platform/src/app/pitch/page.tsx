@@ -29,6 +29,7 @@ export default function PitchPage() {
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const [isCopied, setIsCopied] = useState(false);
+  const [pitchDraft, setPitchDraft] = useState<string | null>(null);
   const [projectDetails, setProjectDetails] = useState({
     title: "",
     description: "",
@@ -66,6 +67,7 @@ export default function PitchPage() {
   const generatePitch = api.pitch.generatePitchDraft.useMutation({
     onSuccess: async (data) => {
       if (data.pitchDraft) {
+        setPitchDraft(data.pitchDraft);
         toast({
           description: "Pitch generated successfully!",
         });
@@ -117,6 +119,12 @@ export default function PitchPage() {
         targetAudience: "",
         uniqueSellingPoints: [],
       });
+
+      // If project has a pitch draft, go straight to draft tab and set the content
+      if (project.pitchDraft) {
+        setPitchDraft(project.pitchDraft);
+        setActiveTab("draft");
+      }
     }
   }, [project]);
 
@@ -181,8 +189,8 @@ export default function PitchPage() {
   };
 
   const handleCopyPitch = async () => {
-    if (!generatePitch.data?.pitchDraft) return;
-    await navigator.clipboard.writeText(generatePitch.data.pitchDraft);
+    if (!pitchDraft) return;
+    await navigator.clipboard.writeText(pitchDraft);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
@@ -318,7 +326,7 @@ export default function PitchPage() {
                       Review and customize your generated pitch draft
                     </CardDescription>
                   </div>
-                  {generatePitch.data?.pitchDraft && (
+                  {pitchDraft && (
                     <div className="flex items-center gap-2">
                       <ViewModeToggle
                         viewMode={viewMode}
@@ -339,10 +347,10 @@ export default function PitchPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {generatePitch.data?.pitchDraft ? (
+                {pitchDraft ? (
                   <div className="space-y-4">
                     <ContentView
-                      content={generatePitch.data.pitchDraft}
+                      content={pitchDraft}
                       viewMode={viewMode}
                       className="min-h-[600px]"
                     />
@@ -351,7 +359,7 @@ export default function PitchPage() {
                         onClick={() =>
                           updateProject.mutate({
                             id: projectId,
-                            pitchDraft: generatePitch.data.pitchDraft,
+                            pitchDraft: pitchDraft,
                           })
                         }
                         disabled={updateProject.isPending}
