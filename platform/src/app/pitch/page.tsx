@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
   Card,
   CardContent,
@@ -22,7 +22,7 @@ import { Toaster } from "~/components/ui/toaster";
 import { useSearchParams } from "next/navigation";
 import { pitchTemplates } from "~/components/pitch-templates";
 
-export default function PitchPage() {
+function PitchForm() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
 
@@ -466,5 +466,13 @@ export default function PitchPage() {
       </div>
       <Toaster />
     </>
+  );
+}
+
+export default function PitchPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PitchForm />
+    </Suspense>
   );
 }

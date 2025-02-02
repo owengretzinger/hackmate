@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -39,7 +39,7 @@ const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
 });
 
-export default function ReadmePage() {
+function ReadmeForm() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
 
@@ -528,5 +528,13 @@ export default function ReadmePage() {
       </Tabs>
       <Toaster />
     </div>
+  );
+}
+
+export default function ReadmePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ReadmeForm />
+    </Suspense>
   );
 }

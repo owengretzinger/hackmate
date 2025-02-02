@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -34,7 +35,7 @@ const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
 });
 
-export default function ArchitecturePage() {
+function ArchitectureForm() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
 
@@ -310,5 +311,13 @@ export default function ArchitecturePage() {
       </div>
       <Toaster />
     </>
+  );
+}
+
+export default function ArchitecturePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ArchitectureForm />
+    </Suspense>
   );
 }
