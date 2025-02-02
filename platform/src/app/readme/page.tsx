@@ -33,6 +33,8 @@ import {
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
 import { Separator } from "~/components/ui/separator";
+import { type FileData } from "~/utils/vertex-ai";
+import pdfToText from "react-pdftotext";
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
@@ -166,16 +168,94 @@ export default function ReadmePage() {
     }
   }, [project, form]);
 
+  const extractPdfText = async (file: File): Promise<string> => {
+    try {
+      const text = await pdfToText(file);
+      return text;
+    } catch (error) {
+      console.error("Error extracting PDF text:", error);
+      throw new Error("Failed to extract text from PDF");
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const validFiles: File[] = [];
+      const skippedFiles: string[] = [];
+
+      Array.from(e.target.files).forEach((file) => {
+        if (
+          file.type === "application/pdf" ||
+          file.type.startsWith("text/") ||
+          file.type.includes("javascript") ||
+          file.type.includes("json") ||
+          /\.(txt|md|js|jsx|ts|tsx|json|yaml|yml|xml|csv|html|css|scss|less|pdf)$/i.test(
+            file.name,
+          )
+        ) {
+          validFiles.push(file);
+        } else {
+          skippedFiles.push(file.name);
+        }
+      });
+
+      if (skippedFiles.length > 0) {
+        toast({
+          title: "Unsupported files skipped",
+          description: `Only text files and PDFs are supported. Skipped: ${skippedFiles.join(", ")}`,
+          variant: "default",
+        });
+      }
+
+      // Create new FileList with only valid files
+      const dt = new DataTransfer();
+      validFiles.forEach((file) => dt.items.add(file));
+      setUploadedFiles(dt.files);
+    }
+  };
+
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setGeneratedReadme(null);
     setRepomixOutput(null);
     setShowRepomixOutput(false);
-    await generateReadme.mutateAsync({
-      ...values,
-      templateId: selectedTemplate,
-      additionalContext,
-    });
+
+    try {
+      // Process uploaded files
+      const processedFiles: FileData[] = [];
+
+      if (uploadedFiles) {
+        for (const file of Array.from(uploadedFiles)) {
+          let content: string;
+          if (file.type === "application/pdf") {
+            content = await extractPdfText(file);
+          } else {
+            content = await file.text();
+          }
+
+          processedFiles.push({
+            name: file.name,
+            content,
+            type: file.type,
+          });
+        }
+      }
+
+      await generateReadme.mutateAsync({
+        ...values,
+        templateId: selectedTemplate,
+        additionalContext,
+        files: processedFiles,
+      });
+    } catch (error) {
+      console.error("File processing error:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to process files. Please try again.",
+      });
+      setIsLoading(false);
+    }
   };
 
   const handleCopyReadme = async () => {
@@ -183,12 +263,6 @@ export default function ReadmePage() {
     await navigator.clipboard.writeText(generatedReadme);
     setIsReadmeCopied(true);
     setTimeout(() => setIsReadmeCopied(false), 2000);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setUploadedFiles(e.target.files);
-    }
   };
 
   const handleFileDelete = (indexToDelete: number) => {

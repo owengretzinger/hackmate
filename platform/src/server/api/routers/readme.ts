@@ -3,6 +3,13 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { generateReadmeWithAI } from "~/utils/vertex-ai";
 import { packRepositoryWithRepomix } from "~/utils/repomix";
 
+// Define a schema for file data
+const FileDataSchema = z.object({
+  name: z.string(),
+  content: z.string(),
+  type: z.string(),
+});
+
 type GenerateReadmeResponse =
   | { success: true; readme: string; repomixOutput: string; error?: never }
   | { success: false; error: string; readme?: never; repomixOutput?: never };
@@ -14,6 +21,7 @@ export const readmeRouter = createTRPCRouter({
         repoUrl: z.string().url(),
         templateId: z.string(),
         additionalContext: z.string(),
+        files: z.array(FileDataSchema).optional(),
       })
     )
     .mutation(async ({ input }): Promise<GenerateReadmeResponse> => {
@@ -34,7 +42,8 @@ export const readmeRouter = createTRPCRouter({
         const result = await generateReadmeWithAI(
           repomixResult.packedContent,
           input.templateId,
-          input.additionalContext
+          input.additionalContext,
+          input.files
         );
 
         return {

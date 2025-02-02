@@ -42,10 +42,17 @@ export type GenerateArchitectureResponse = {
   repomixOutput: string;
 };
 
+export type FileData = {
+  name: string;
+  content: string;
+  type: string;
+};
+
 export async function generateReadmeWithAI(
   repoContent: string,
   templateId: string,
   additionalContext: string,
+  files?: FileData[],
 ): Promise<GenerateReadmeResponse> {
   if (USE_MOCK.ai) {
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -56,20 +63,27 @@ export async function generateReadmeWithAI(
   }
 
   try {
+    // Process uploaded files
+    const fileContents = files?.map(file => 
+      `File: ${file.name} (${file.type})\n${file.content}\n---\n`
+    ).join('\n') ?? '';
+
     const readmePrompt = `You are an expert technical writer tasked with creating a comprehensive README.md file for a GitHub repository.
-I will provide you with the repository's code content, template preference, and additional context. Generate a detailed, well-structured README.md file.
+I will provide you with the repository's code content, template preference, additional context, and any uploaded files. Generate a detailed, well-structured README.md file.
 
 Template: ${templateId}
 Additional Context: ${additionalContext}
 
-The README should follow the selected template structure while incorporating any specific requirements from the additional context.
+${fileContents ? `Uploaded Files:\n${fileContents}\n` : ''}
+
+The README should follow the selected template structure while incorporating any specific requirements from the additional context and uploaded files.
 Make the README engaging, professional, and informative. Use proper Markdown formatting.
 
 Here's the repository content:
 
 ${repoContent}
 
-Generate a README.md file based on this content, following the specified template and incorporating the additional context.`;
+Generate a README.md file based on this content, following the specified template and incorporating the additional context and uploaded files.`;
 
     const result = await model.generateContent(readmePrompt);
     const readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
