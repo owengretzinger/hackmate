@@ -32,8 +32,7 @@ export const templates: readonly [Template, ...Template[]] = [
   {
     id: "owen",
     name: "Owen's README Template",
-    description:
-      "A comprehensive template with database schema and modern app features",
+    description: "A comprehensive template with a hero section",
     content: owen,
   },
 ];

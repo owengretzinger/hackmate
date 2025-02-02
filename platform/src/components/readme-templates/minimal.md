@@ -14,17 +14,17 @@ A brief description of what this project does and who it's for.
 - Tech 3
 
 ## Installation
-\`\`\`bash
+```bash
 npm install my-project
-\`\`\`
+```
 
 ## Usage
-\`\`\`typescript
+```typescript
 import { myFunction } from 'my-project'
 
 // Example usage
 myFunction()
-\`\`\`
+```
 
 ## Contributing
 Contributions are always welcome!
