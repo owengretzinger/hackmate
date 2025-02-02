@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 import { randomUUID } from "crypto";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { sql } from "drizzle-orm";
 
 type HackathonProject = typeof hackathonProjects.$inferInsert;
 
@@ -124,11 +125,17 @@ export const hackathonRouter = createTRPCRouter({
               const devpostUrl = linkElement instanceof HTMLAnchorElement ? linkElement.href : "";
               const isWinner = entry.querySelector('.winner-badge, .winner, .winner-banner, [class*="winner"]') !== null;
 
+              // Get thumbnail URL
+              const thumbnailImg = entry.querySelector('.software_thumbnail_image');
+              const thumbnailUrl = thumbnailImg instanceof HTMLImageElement ? thumbnailImg.src : null;
+              console.log(`Found thumbnail for ${title}:`, thumbnailUrl);
+
               return {
                 title,
                 tagline,
                 devpostUrl,
                 isWinner,
+                thumbnailUrl
               };
             });
           });
@@ -164,10 +171,151 @@ export const hackathonRouter = createTRPCRouter({
             try {
               await projectPage.goto(project.devpostUrl, { waitUntil: 'networkidle0' });
               
+              // Save the project page HTML for debugging
+              const pageContent = await projectPage.content();
+              await writeFile(
+                path.join(debugDir, `project-${project.title.replace(/[^a-z0-9]/gi, '_')}-page.html`),
+                pageContent
+              );
+              console.log(`📝 Saved project page HTML for debugging`);
+
               // Extract detailed information
               const details = await projectPage.evaluate(() => {
-                // Get full description from the main content
-                const fullDescription = document.querySelector('#app-details .content-section')?.textContent?.trim() ?? '';
+                // Debug helper to log selector results
+                const debugSelector = (selector: string, context: Element | Document = document) => {
+                  const elements = context.querySelectorAll(selector);
+                  console.log(`Selector "${selector}" found ${elements.length} elements`);
+                  elements.forEach((el, i) => console.log(`- Element ${i + 1}:`, el.textContent?.trim()));
+                  return elements;
+                };
+
+                // Define selectors that will be used for debugging info
+                const descriptionSelectors = [
+                  '#app-details .content-section',
+                  '.app-details .content-section',
+                  '.software-description',
+                  '.page-content .content',
+                  '.description',
+                  '#software-description',
+                  'div[data-section="description"]',
+                  '.app-details',
+                  '.content .description',
+                  '.content .description-section'
+                ];
+
+                const teamMemberSelectors = [
+                  '.software-team-member',
+                  '.members .member',
+                  '.team-members .member',
+                  '.member-profile',
+                  '.members li',
+                  '.member'
+                ];
+
+                // Get full description - try multiple possible selectors
+                debugSelector('#app-details .content-section');
+                debugSelector('.app-details .content-section');
+                debugSelector('.software-description');
+                debugSelector('.page-content .content');
+                debugSelector('.description');
+                debugSelector('#software-description');
+
+                // Get the full description from the article content - target the div between gallery and built-with
+                const articleContent = document.querySelector('#app-details-left > div:not(#gallery):not(#built-with):not(.app-links)');
+                let fullDescription = '';
+                if (articleContent) {
+                  // Get the HTML content directly to preserve formatting
+                  fullDescription = articleContent.innerHTML;
+
+                  // Clean up the HTML
+                  // Remove any script tags
+                  fullDescription = fullDescription.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                  // Remove any style tags
+                  fullDescription = fullDescription.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+                  // Remove any class attributes
+                  fullDescription = fullDescription.replace(/\sclass="[^"]*"/g, '');
+                  // Remove any id attributes
+                  fullDescription = fullDescription.replace(/\sid="[^"]*"/g, '');
+                  // Remove any data attributes
+                  fullDescription = fullDescription.replace(/\sdata-[^=]*="[^"]*"/g, '');
+                  // Remove any empty paragraphs
+                  fullDescription = fullDescription.replace(/<p>\s*<\/p>/g, '');
+                  // Normalize whitespace but preserve newlines between elements
+                  fullDescription = fullDescription.replace(/>\s+</g, '>\n<').trim();
+
+                  console.log('Extracted formatted description:', fullDescription.slice(0, 200) + '...');
+                }
+
+                if (!fullDescription) {
+                  // Fallback to previous selectors if article content not found
+                  for (const selector of descriptionSelectors) {
+                    const element = document.querySelector(selector);
+                    if (element?.innerHTML) {
+                      fullDescription = element.innerHTML;
+                      console.log(`Found description using selector: ${selector}`);
+                      console.log('Description preview:', fullDescription.slice(0, 100));
+                      break;
+                    }
+                  }
+                }
+
+                // Debug description extraction
+                const headingRegex = /<h\d[^>]*>(.*?)<\/h\d>/;
+                const allHeadingsRegex = /<h\d[^>]*>(.*?)<\/h\d>/g;
+                const firstHeadingMatch = headingRegex.exec(fullDescription);
+                const allHeadings = fullDescription.match(allHeadingsRegex);
+
+                console.log('Description extraction results:', {
+                  length: fullDescription.length,
+                  hasHtml: fullDescription.includes('<'),
+                  firstHeading: firstHeadingMatch?.[1] ?? 'No headings found',
+                  sections: allHeadings?.length ?? 0,
+                  preview: fullDescription.slice(0, 500)
+                });
+
+                // Debug team member selectors
+                debugSelector('.software-team-member');
+                debugSelector('.user-profile-link');
+                debugSelector('.members .user-profile-link');
+                debugSelector('.member .user-profile-link');
+                debugSelector('.member-profile');
+                debugSelector('.member .user-name');
+                debugSelector('.member .member-profile');
+
+                // Get team members with enhanced details
+                const teamMembers = Array.from(document.querySelectorAll('.software-team-member')).map(member => {
+                  // Get name and profile URL - look for the link within the large-8 columns div
+                  const profileLink = member.querySelector('.small-10.large-8.columns .user-profile-link');
+                  const name = profileLink?.textContent?.trim() ?? 'Unknown Member';
+                  const profileUrl = profileLink instanceof HTMLAnchorElement ? profileLink.href : '';
+
+                  // Get role/contribution from bubble
+                  const bubble = member.querySelector('.bubble p');
+                  const role = bubble?.textContent?.trim();
+
+                  // Get avatar URL - look for img within the user-photo class
+                  const avatar = member.querySelector('.user-photo');
+                  const avatarUrl = avatar instanceof HTMLImageElement ? avatar.src : undefined;
+
+                  // Debug log for this member
+                  console.log('Found team member:', {
+                    name,
+                    profileUrl,
+                    role,
+                    avatarUrl,
+                    rawProfileLink: profileLink?.outerHTML,
+                  });
+
+                  return {
+                    name,
+                    profileUrl,
+                    role: role ?? undefined,
+                    avatarUrl: avatarUrl?.startsWith('http') ? avatarUrl : undefined
+                  };
+                });
+
+                // Log all found team members for debugging
+                console.log('All team members:', teamMembers);
 
                 // Get technologies with recognition status and links
                 const techNodes = document.querySelectorAll('.cp-tag, .built-with-list li');
@@ -179,21 +327,6 @@ export const hackathonRouter = createTRPCRouter({
                     isRecognized: node.classList.contains('recognized-tag')
                   };
                 }).filter(tech => tech.name);
-
-                // Get team size and members with details
-                const teamNodes = document.querySelectorAll('.software-team-member');
-                const teamSize = teamNodes.length;
-                const teamMembers = Array.from(teamNodes).map(node => {
-                  const link = node.querySelector('.user-profile-link');
-                  const img = node.querySelector('img');
-                  const bubble = node.querySelector('.bubble');
-                  return {
-                    name: link?.textContent?.trim() ?? '',
-                    profileUrl: link instanceof HTMLAnchorElement ? link.href : '',
-                    avatarUrl: img?.src,
-                    role: bubble?.textContent?.trim()
-                  };
-                });
 
                 // Get gallery images with captions
                 const galleryNodes = document.querySelectorAll('#gallery .slick-slide:not(.slick-cloned) a[data-lightbox]');
@@ -216,11 +349,10 @@ export const hackathonRouter = createTRPCRouter({
                 const commentCount = parseInt(document.querySelector('.comment-button .side-count')?.textContent ?? '0', 10);
                 const engagement = { likes: likeCount, comments: commentCount };
 
-                // Get awards with prizes
-                const awards = Array.from(document.querySelectorAll('.software-list-content .winner')).map(node => {
+                // Get awards with prizes and categories
+                const awards = Array.from(document.querySelectorAll('#submissions .software-list-content .winner')).map(node => {
                   const label = node.textContent?.trim() ?? '';
                   const prizeText = node.nextSibling?.textContent?.trim();
-                  // Get category from parent or grandparent section heading
                   const section = node.closest('section, .category-section');
                   const categoryHeading = section?.querySelector('h1, h2, h3, .category-name');
                   const category = categoryHeading?.textContent?.trim() ?? 'Overall';
@@ -233,21 +365,91 @@ export const hackathonRouter = createTRPCRouter({
                   };
                 });
 
-                const githubLink = document.querySelector('a[href*="github.com"]');
+                // Debug all links in the page
+                console.log('Debugging all links:');
+                const allLinks = document.querySelectorAll('a[href*="github.com"]');
+                console.log(`Found ${allLinks.length} GitHub links on page:`);
+                allLinks.forEach(link => console.log('GitHub link:', {
+                  href: link.getAttribute('href'),
+                  text: link.textContent,
+                  html: link.outerHTML
+                }));
+
+                // Debug software-urls section
+                const softwareUrls = document.querySelector('[data-role="software-urls"]');
+                console.log('Software URLs section:', {
+                  found: !!softwareUrls,
+                  html: softwareUrls?.outerHTML
+                });
+
+                // Try multiple selectors for GitHub link
+                const githubSelectors = [
+                  '[data-role="software-urls"] a[href*="github.com"]',
+                  '.app-links a[href*="github.com"]',
+                  'a[href*="github.com"]',
+                  '.app-links [title*="github.com"]',
+                  'nav.app-links a[href*="github"]'
+                ];
+
+                let githubLink = null;
+                for (const selector of githubSelectors) {
+                  const link = document.querySelector(selector);
+                  console.log(`Trying selector "${selector}":`, {
+                    found: !!link,
+                    href: link?.getAttribute('href'),
+                    html: link?.outerHTML
+                  });
+                  if (link instanceof HTMLAnchorElement) {
+                    githubLink = link;
+                    console.log(`Found GitHub link using selector: ${selector}`);
+                    break;
+                  }
+                }
+
+                // Get website link from app-links section
+                const websiteLink = document.querySelector('[data-role="software-urls"] a[href]:not([href*="github.com"])');
+                console.log('Found website link:', websiteLink?.getAttribute('href'));
+
                 return {
                   fullDescription,
                   technologies,
-                  teamSize,
+                  teamSize: teamMembers.length,
                   teamMembers,
                   galleryImages,
                   demoVideo,
                   engagement,
                   awards,
-                  githubUrl: githubLink instanceof HTMLAnchorElement ? githubLink.href : undefined
+                  githubUrl: githubLink?.href ?? null,
+                  websiteUrl: websiteLink instanceof HTMLAnchorElement ? websiteLink.href : null,
+                  debugInfo: {
+                    descriptionLength: fullDescription.length,
+                    teamMembersFound: teamMembers.length,
+                    selectors: {
+                      description: descriptionSelectors,
+                      teamMembers: teamMemberSelectors
+                    }
+                  }
                 };
               });
 
-              console.log("📊 Extracted details:", details);
+              // Enhanced debug logging
+              console.log("\n🔍 Extracted Details Summary:");
+              console.log(`📝 Description length: ${details.fullDescription?.length ?? 0} characters`);
+              console.log(`👥 Team members found: ${details.teamMembers.length}`);
+              console.log(`🏷️ Technologies found: ${details.technologies.length}`);
+              console.log(`🖼️ Gallery images found: ${details.galleryImages.length}`);
+              console.log(`🏆 Awards found: ${details.awards.length}`);
+              
+              // Save detailed debug info for this project
+              await writeFile(
+                path.join(debugDir, `project-${project.title.replace(/[^a-z0-9]/gi, '_')}.json`),
+                JSON.stringify({
+                  title: project.title,
+                  devpostUrl: project.devpostUrl,
+                  extractedDetails: details,
+                  debugInfo: details.debugInfo
+                }, null, 2)
+              );
 
               const projectData: HackathonProject = {
                 id: randomUUID(),
@@ -255,7 +457,7 @@ export const hackathonRouter = createTRPCRouter({
                 tagline: project.tagline ?? null,
                 description: details.fullDescription ?? null,
                 devpostUrl: project.devpostUrl,
-                thumbnail: null,
+                thumbnail: project.thumbnailUrl,
                 technologies: details.technologies,
                 awards: details.awards,
                 demoVideo: details.demoVideo,
@@ -267,7 +469,8 @@ export const hackathonRouter = createTRPCRouter({
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 galleryImages: details.galleryImages,
-                engagement: details.engagement
+                engagement: details.engagement,
+                websiteUrl: details.websiteUrl ?? null
               };
 
               try {
@@ -285,6 +488,10 @@ export const hackathonRouter = createTRPCRouter({
                       demoVideo: details.demoVideo,
                       engagement: details.engagement,
                       teamMembers: details.teamMembers,
+                      teamSize: details.teamSize,
+                      githubUrl: details.githubUrl,
+                      websiteUrl: details.websiteUrl,
+                      thumbnail: project.thumbnailUrl,
                       updatedAt: new Date()
                     },
                   });
@@ -303,7 +510,7 @@ export const hackathonRouter = createTRPCRouter({
                 tagline: project.tagline ?? null,
                 description: null,
                 devpostUrl: project.devpostUrl,
-                thumbnail: null,
+                thumbnail: project.thumbnailUrl,
                 technologies: [],
                 awards: [{
                   category: 'Unknown - Error Fetching Details',
@@ -314,6 +521,7 @@ export const hackathonRouter = createTRPCRouter({
                 demoVideo: null,
                 teamSize: null,
                 githubUrl: null,
+                websiteUrl: null,
                 teamMembers: [],
                 hackathonUrl: input.hackathonUrl,
                 hackathonName: input.hackathonName,
@@ -406,4 +614,18 @@ export const hackathonRouter = createTRPCRouter({
       orderBy: (projects, { desc }) => [desc(projects.createdAt)],
     });
   }),
+
+  getRandomProjects: publicProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(10),
+    }))
+    .query(async ({ input }) => {
+      // Using SQL's RANDOM() function to efficiently get random rows
+      const randomProjects = await db.query.hackathonProjects.findMany({
+        orderBy: sql`RANDOM()`,
+        limit: input.limit,
+      });
+
+      return randomProjects;
+    }),
 });

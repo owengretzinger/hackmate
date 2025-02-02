@@ -158,6 +158,7 @@ export const hackathonProjects = createTable('hackathon_projects', {
   }>>().notNull().default([]),
   teamSize: integer('team_size'),
   githubUrl: text('github_url'),
+  websiteUrl: text('website_url'),
   teamMembers: json('team_members').$type<Array<{
     name: string;
     profileUrl: string;

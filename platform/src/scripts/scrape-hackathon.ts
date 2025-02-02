@@ -14,9 +14,9 @@ async function main() {
 
   try {
     const result = await client.hackathon.scrapeHackathon.mutate({
-      hackathonUrl: "https://qhacks-2025.devpost.com",
-      hackathonName: "QHacks 2025",
-      limit: 10,
+      hackathonUrl: "https://deltahacks-xi.devpost.com",
+      hackathonName: "DeltaHacks XI",
+      limit: 30,
     });
 
     console.log("Scraping completed:", result);
