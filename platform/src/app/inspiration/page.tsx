@@ -33,7 +33,7 @@ export default function InspirationPage() {
     data: projects,
     isLoading,
     refetch,
-  } = api.hackathon.getRandomProjects.useQuery(
+  } = api.inspiration.getRandomProjects.useQuery(
     { limit: 10 },
     {
       refetchOnWindowFocus: false,
@@ -46,7 +46,7 @@ export default function InspirationPage() {
       },
     },
   );
-  const { data: totalProjects } = api.hackathon.getTotalProjectCount.useQuery(
+  const { data: totalProjects } = api.inspiration.getTotalProjectCount.useQuery(
     undefined,
     {
       refetchOnWindowFocus: false,

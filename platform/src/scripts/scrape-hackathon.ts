@@ -1,6 +1,13 @@
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "~/server/api/root";
 import superjson from "superjson";
+import { env } from "~/env";
+
+// Ensure we're in development mode
+if (env.NODE_ENV === "production") {
+  console.error("❌ Error: This script can only be run in development mode");
+  process.exit(1);
+}
 
 const hackathons = [
   // {
@@ -46,7 +53,7 @@ async function main() {
   for (const hackathon of hackathons) {
     try {
       console.log(`Starting to scrape ${hackathon.name}...`);
-      const result = await client.hackathon.scrapeHackathon.mutate({
+      const result = await client.hackathonScraper.scrapeHackathon.mutate({
         hackathonUrl: hackathon.url,
         hackathonName: hackathon.name,
         limit: 30,
