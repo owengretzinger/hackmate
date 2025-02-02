@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -29,11 +29,9 @@ import {
   ChevronUp,
   Eye,
   Code,
-  Download,
   Copy,
   Check,
 } from "lucide-react";
-import Mermaid from "~/components/mermaid";
 import { cn } from "~/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import { useSearchParams } from "next/navigation";
@@ -135,13 +133,10 @@ export default function ReadmePage() {
   const projectId = searchParams.get("projectId");
 
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
-  const [generatedDiagram, setGeneratedDiagram] = useState<string | null>(null);
   const [repomixOutput, setRepomixOutput] = useState<string | null>(null);
   const [showRepomixOutput, setShowRepomixOutput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [diagramViewMode, setDiagramViewMode] = useState<ViewMode>("preview");
   const [readmeViewMode, setReadmeViewMode] = useState<ViewMode>("preview");
-  const [isCopied, setIsCopied] = useState(false);
   const [isReadmeCopied, setIsReadmeCopied] = useState(false);
   const { toast } = useToast();
 
@@ -153,18 +148,13 @@ export default function ReadmePage() {
   );
 
   // Set initial content from project
-  useEffect(() => {
-    if (project) {
-      if (project.readme) {
-        setGeneratedReadme(project.readme);
-      }
-      if (project.architectureDiagram) {
-        setGeneratedDiagram(project.architectureDiagram);
-      }
+  useState(() => {
+    if (project?.readme) {
+      setGeneratedReadme(project.readme);
     }
-  }, [project]);
+  });
 
-  const generateReadme = api.documentation.generateReadme.useMutation({
+  const generateReadme = api.readme.generateReadme.useMutation({
     onSuccess: async (data) => {
       if (!data.success) {
         toast({
@@ -173,14 +163,12 @@ export default function ReadmePage() {
           description: data.error,
         });
         setGeneratedReadme(null);
-        setGeneratedDiagram(null);
         setRepomixOutput(null);
       } else {
         toast({
           description: "README generated successfully!",
         });
         setGeneratedReadme(data.readme);
-        setGeneratedDiagram(data.diagram);
         setRepomixOutput(data.repomixOutput);
 
         // If we have a project ID, update the project with the generated content
@@ -188,7 +176,6 @@ export default function ReadmePage() {
           await updateProject.mutateAsync({
             id: projectId,
             readme: data.readme,
-            architectureDiagram: data.diagram,
           });
         }
       }
@@ -202,7 +189,6 @@ export default function ReadmePage() {
       });
       setIsLoading(false);
       setGeneratedReadme(null);
-      setGeneratedDiagram(null);
       setRepomixOutput(null);
     },
   });
@@ -229,80 +215,20 @@ export default function ReadmePage() {
   });
 
   // Update form when project loads
-  useEffect(() => {
+  useState(() => {
     if (project?.githubUrl) {
       form.reset({
         repoUrl: project.githubUrl,
       });
     }
-  }, [project, form]);
+  });
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setGeneratedReadme(null);
-    setGeneratedDiagram(null);
     setRepomixOutput(null);
     setShowRepomixOutput(false);
     await generateReadme.mutateAsync(values);
-  };
-
-  const handleCopyCode = async () => {
-    if (!generatedDiagram) return;
-    await navigator.clipboard.writeText(generatedDiagram);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-  };
-
-  const downloadSvgAsPng = () => {
-    // Get the rendered SVG from the Mermaid component
-    const svgElement = document.querySelector('.mermaid svg');
-    if (!(svgElement instanceof SVGSVGElement)) return;
-
-    try {
-      // Create canvas with proper dimensions
-      const canvas = document.createElement('canvas');
-      const scale = 4;
-
-      // Set canvas size based on SVG's bounding box
-      const bbox = svgElement.getBBox();
-      const transform = svgElement.getScreenCTM();
-      if (!transform) return;
-
-      // Calculate actual dimensions
-      const width = Math.ceil(bbox.width * transform.a);
-      const height = Math.ceil(bbox.height * transform.d);
-      canvas.width = width * scale;
-      canvas.height = height * scale;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      // Convert SVG to image
-      const svgData = new XMLSerializer().serializeToString(svgElement);
-      const img = new Image();
-      
-      img.onload = () => {
-        // Draw white background
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draw scaled image
-        ctx.scale(scale, scale);
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Download
-        const a = document.createElement('a');
-        a.download = 'architecture-diagram.png';
-        a.href = canvas.toDataURL('image/png', 1.0);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      };
-
-      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-    } catch (error) {
-      console.error('Error generating PNG:', error);
-    }
   };
 
   const handleCopyReadme = async () => {
@@ -317,14 +243,13 @@ export default function ReadmePage() {
       <div className="container mx-auto py-10">
         <Card className="mx-auto max-w-4xl">
           <CardHeader>
-            <CardTitle>Documentation Generator</CardTitle>
+            <CardTitle>README Generator</CardTitle>
             <CardDescription>
               {project ? (
-                <>Generating documentation for {project.name}</>
+                <>Generating README for {project.name}</>
               ) : (
                 <>
-                  Enter a public GitHub repository URL to generate a README file and
-                  architecture diagram using AI.
+                  Enter a public GitHub repository URL to generate a README file using AI.
                 </>
               )}
             </CardDescription>
@@ -355,66 +280,35 @@ export default function ReadmePage() {
               </form>
             </Form>
 
-            {(generatedReadme ?? generatedDiagram) && (
+            {generatedReadme && (
               <div className="mt-8 space-y-8">
-                {generatedDiagram && (
-                  <div>
-                    <div className="mb-4 flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">
-                        Architecture Diagram
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <ViewModeToggle 
-                          viewMode={diagramViewMode} 
-                          setViewMode={setDiagramViewMode} 
-                        />
-                        <ActionButton
-                          onClick={diagramViewMode === "preview" ? downloadSvgAsPng : handleCopyCode}
-                          icon={
-                            diagramViewMode === "preview" ? (
-                              <Download className="h-4 w-4" />
-                            ) : isCopied ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )
-                          }
-                        />
-                      </div>
+                <div>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">
+                      Generated README
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <ViewModeToggle 
+                        viewMode={readmeViewMode} 
+                        setViewMode={setReadmeViewMode} 
+                      />
+                      <ActionButton
+                        onClick={handleCopyReadme}
+                        icon={
+                          isReadmeCopied ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )
+                        }
+                      />
                     </div>
-                    <Mermaid chart={generatedDiagram} viewMode={diagramViewMode} />
                   </div>
-                )}
-
-                {generatedReadme && (
-                  <div>
-                    <div className="mb-4 flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">
-                        Generated README
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <ViewModeToggle 
-                          viewMode={readmeViewMode} 
-                          setViewMode={setReadmeViewMode} 
-                        />
-                        <ActionButton
-                          onClick={handleCopyReadme}
-                          icon={
-                            isReadmeCopied ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                    <ContentView 
-                      content={generatedReadme} 
-                      viewMode={readmeViewMode}
-                    />
-                  </div>
-                )}
+                  <ContentView 
+                    content={generatedReadme} 
+                    viewMode={readmeViewMode}
+                  />
+                </div>
 
                 {repomixOutput && (
                   <div>

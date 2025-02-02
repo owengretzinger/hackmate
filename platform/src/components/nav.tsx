@@ -10,12 +10,16 @@ const links = [
     label: "Inspiration",
   },
   {
-    href: "/documentation",
-    label: "Documentation",
+    href: "/readme",
+    label: "README Generator",
+  },
+  {
+    href: "/architecture",
+    label: "Architecture Diagram",
   },
   {
     href: "/pitch",
-    label: "Pitch",
+    label: "Pitch Assistant",
   },
 ];
 

@@ -1,10 +1,11 @@
 import { createTRPCRouter } from "~/server/api/trpc";
-import { documentationRouter } from "./routers/documentation";
+import { readmeRouter } from "./routers/readme";
 import { inspirationRouter } from "./routers/inspiration";
 import { pitchRouter } from "./routers/pitch";
 import { createCallerFactory } from "~/server/api/trpc";
 import { hackathonScraperRouter } from "./routers/hackathon-scraper";
 import { userProjectsRouter } from "./routers/user-projects";
+import { architectureRouter } from "~/server/api/routers/architecture";
 
 /**
  * This is the primary router for your server.
@@ -12,11 +13,12 @@ import { userProjectsRouter } from "./routers/user-projects";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  documentation: documentationRouter,
+  readme: readmeRouter,
   inspiration: inspirationRouter,
   pitch: pitchRouter,
   hackathonScraper: hackathonScraperRouter,
   userProjects: userProjectsRouter,
+  architecture: architectureRouter,
 });
 
 // export type definition of API
