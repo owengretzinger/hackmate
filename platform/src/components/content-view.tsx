@@ -1,5 +1,6 @@
 import { cn } from "~/lib/utils";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import type { ViewMode } from "./view-mode-toggle";
 
 interface ContentViewProps {
@@ -33,7 +34,7 @@ export function ContentView({
         className,
       )}
     >
-      <ReactMarkdown>{content}</ReactMarkdown>
+      <ReactMarkdown rehypePlugins={[rehypeRaw]}>{content}</ReactMarkdown>
     </div>
   );
 }
