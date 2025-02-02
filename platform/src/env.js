@@ -18,6 +18,8 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     GOOGLE_CLOUD_PROJECT_ID: z.string(),
+    GOOGLE_CLOUD_LOCATION: z.string(),
+    USE_MOCK_RESPONSES: z.enum(["true", "false"]).default("true"),
   },
 
   /**
@@ -40,6 +42,8 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
+    GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION,
+    USE_MOCK_RESPONSES: process.env.USE_MOCK_RESPONSES,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

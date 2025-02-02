@@ -59,3 +59,6 @@ HackMate is an intelligent assistant designed to help hackathon participants exc
 - Aligned with GDSC Mac-a-Thon requirements
 - Enables rapid development with production-ready features
 - Strong typing and developer experience with T3 Stack
+
+
+Next.js, NextAuth.js, Drizzle, TailwindCSS, tRPC, PostgreSQL, Gemini, VertexAI

@@ -17,8 +17,11 @@ export async function Nav() {
             <Link href="/inspiration">
               <Button variant="ghost">Inspiration</Button>
             </Link>
-            <Link href="/documentation  ">
+            <Link href="/documentation">
               <Button variant="ghost">Documentation Generator</Button>
+            </Link>
+            <Link href="/pitch">
+              <Button variant="ghost">Pitch Assistant</Button>
             </Link>
           </div>
         </div>

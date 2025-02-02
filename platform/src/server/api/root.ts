@@ -1,6 +1,7 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { documentationRouter } from "./routers/documentation";
 import { hackathonRouter } from "./routers/hackathon";
+import { pitchRouter } from "./routers/pitch";
 import { createCallerFactory } from "~/server/api/trpc";
 
 /**
@@ -11,6 +12,7 @@ import { createCallerFactory } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
   documentation: documentationRouter,
   hackathon: hackathonRouter,
+  pitch: pitchRouter,
 });
 
 // export type definition of API
