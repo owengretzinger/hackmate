@@ -9,7 +9,13 @@ type GenerateReadmeResponse =
 
 export const readmeRouter = createTRPCRouter({
   generateReadme: publicProcedure
-    .input(z.object({ repoUrl: z.string().url() }))
+    .input(
+      z.object({
+        repoUrl: z.string().url(),
+        templateId: z.string(),
+        additionalContext: z.string(),
+      })
+    )
     .mutation(async ({ input }): Promise<GenerateReadmeResponse> => {
       console.log("Starting README generation for:", input.repoUrl);
 
@@ -25,7 +31,11 @@ export const readmeRouter = createTRPCRouter({
 
         // Generate README using Vertex AI
         console.log("Generating content with Vertex AI...");
-        const result = await generateReadmeWithAI(repomixResult.packedContent);
+        const result = await generateReadmeWithAI(
+          repomixResult.packedContent,
+          input.templateId,
+          input.additionalContext
+        );
 
         return {
           success: true,

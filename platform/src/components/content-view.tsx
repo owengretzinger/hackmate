@@ -8,18 +8,32 @@ interface ContentViewProps {
   className?: string;
 }
 
-export function ContentView({ viewMode, content, className }: ContentViewProps) {
-  if (viewMode === "code") {
+export function ContentView({
+  viewMode,
+  content,
+  className,
+}: ContentViewProps) {
+  if (viewMode === "edit") {
     return (
-      <pre className={cn("whitespace-pre-wrap rounded-lg bg-muted p-4 text-sm", className)}>
+      <pre
+        className={cn(
+          "whitespace-pre-wrap rounded-lg bg-muted p-4 text-sm",
+          className,
+        )}
+      >
         <code>{content}</code>
       </pre>
     );
   }
 
   return (
-    <div className={cn("prose dark:prose-invert max-w-none rounded-lg bg-muted p-4", className)}>
+    <div
+      className={cn(
+        "prose max-w-none rounded-lg bg-muted p-4 dark:prose-invert",
+        className,
+      )}
+    >
       <ReactMarkdown>{content}</ReactMarkdown>
     </div>
   );
-} 
+}

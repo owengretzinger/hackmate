@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
 import { Alert, AlertDescription } from "./ui/alert";
 import { useTheme } from "next-themes";
+import { type ViewMode } from "./view-mode-toggle";
 
 interface MermaidProps {
   chart: string;
-  viewMode: "preview" | "code";
+  viewMode: ViewMode;
 }
 
 interface MermaidRenderResult {
@@ -117,7 +118,9 @@ const renderMermaidDiagram = async (
     }
   } catch (error) {
     console.error("Failed to render mermaid diagram:", error);
-    setError(error instanceof Error ? error.message : "Failed to render diagram");
+    setError(
+      error instanceof Error ? error.message : "Failed to render diagram",
+    );
   }
 };
 
@@ -135,7 +138,7 @@ export default function Mermaid({ chart, viewMode }: MermaidProps) {
     }
   }, [chart, theme, viewMode]);
 
-  if (viewMode === "code") {
+  if (viewMode === "edit") {
     return (
       <pre className="rounded-lg bg-muted p-4 text-sm">
         <code>{chart}</code>
@@ -154,7 +157,10 @@ export default function Mermaid({ chart, viewMode }: MermaidProps) {
   }
 
   return (
-    <div ref={containerRef} className="mermaid overflow-x-auto rounded-lg bg-muted p-4">
+    <div
+      ref={containerRef}
+      className="mermaid overflow-x-auto rounded-lg bg-muted p-4"
+    >
       {/* Diagram will be rendered here */}
     </div>
   );

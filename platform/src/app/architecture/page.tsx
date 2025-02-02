@@ -24,88 +24,15 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { useToast } from "~/hooks/use-toast";
 import { Toaster } from "~/components/ui/toaster";
-import {
-  ChevronDown,
-  ChevronUp,
-  Eye,
-  Code,
-  Download,
-  Copy,
-  Check,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Download, Copy, Check } from "lucide-react";
 import Mermaid from "~/components/mermaid";
-import { cn } from "~/lib/utils";
 import { useSearchParams } from "next/navigation";
+import { ViewModeToggle, type ViewMode } from "~/components/view-mode-toggle";
+import { ActionButton } from "~/components/action-button";
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
 });
-
-type ViewMode = "preview" | "code";
-
-interface ToggleButtonProps {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}
-
-const ToggleButton = ({ active, onClick, icon, children }: ToggleButtonProps) => (
-  <Button
-    variant="ghost"
-    size="sm"
-    onClick={onClick}
-    className={cn(
-      "flex h-8 items-center gap-2 px-3 text-sm font-medium transition-colors",
-      active
-        ? "bg-background text-foreground shadow-sm hover:bg-background"
-        : "text-muted-foreground hover:text-foreground",
-    )}
-  >
-    {icon}
-    {children}
-  </Button>
-);
-
-interface ViewModeToggleProps {
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
-}
-
-const ViewModeToggle = ({ viewMode, setViewMode }: ViewModeToggleProps) => (
-  <div className="inline-flex items-center rounded-lg bg-secondary p-1">
-    <ToggleButton
-      active={viewMode === "preview"}
-      onClick={() => setViewMode("preview")}
-      icon={<Eye className="h-4 w-4" />}
-    >
-      Preview
-    </ToggleButton>
-    <ToggleButton
-      active={viewMode === "code"}
-      onClick={() => setViewMode("code")}
-      icon={<Code className="h-4 w-4" />}
-    >
-      Code
-    </ToggleButton>
-  </div>
-);
-
-interface ActionButtonProps {
-  onClick: () => void;
-  icon: React.ReactNode;
-}
-
-const ActionButton = ({ onClick, icon }: ActionButtonProps) => (
-  <Button
-    variant="outline"
-    size="icon"
-    onClick={onClick}
-    className="h-10 w-10"
-  >
-    {icon}
-  </Button>
-);
 
 export default function ArchitecturePage() {
   const searchParams = useSearchParams();
@@ -219,12 +146,12 @@ export default function ArchitecturePage() {
 
   const downloadSvgAsPng = () => {
     // Get the rendered SVG from the Mermaid component
-    const svgElement = document.querySelector('.mermaid svg');
+    const svgElement = document.querySelector(".mermaid svg");
     if (!(svgElement instanceof SVGSVGElement)) return;
 
     try {
       // Create canvas with proper dimensions
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       const scale = 4;
 
       // Set canvas size based on SVG's bounding box
@@ -238,16 +165,16 @@ export default function ArchitecturePage() {
       canvas.width = width * scale;
       canvas.height = height * scale;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
       // Convert SVG to image
       const svgData = new XMLSerializer().serializeToString(svgElement);
       const img = new Image();
-      
+
       img.onload = () => {
         // Draw white background
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw scaled image
@@ -255,17 +182,19 @@ export default function ArchitecturePage() {
         ctx.drawImage(img, 0, 0, width, height);
 
         // Download
-        const a = document.createElement('a');
-        a.download = 'architecture-diagram.png';
-        a.href = canvas.toDataURL('image/png', 1.0);
+        const a = document.createElement("a");
+        a.download = "architecture-diagram.png";
+        a.href = canvas.toDataURL("image/png", 1.0);
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
       };
 
-      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+      img.src =
+        "data:image/svg+xml;base64," +
+        btoa(unescape(encodeURIComponent(svgData)));
     } catch (error) {
-      console.error('Error generating PNG:', error);
+      console.error("Error generating PNG:", error);
     }
   };
 
@@ -280,14 +209,18 @@ export default function ArchitecturePage() {
                 <>Generating architecture diagram for {project.name}</>
               ) : (
                 <>
-                  Enter a public GitHub repository URL to generate an architecture diagram using AI.
+                  Enter a public GitHub repository URL to generate an
+                  architecture diagram using AI.
                 </>
               )}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+              <form
+                onSubmit={form.handleSubmit(handleSubmit)}
+                className="space-y-8"
+              >
                 <FormField
                   control={form.control}
                   name="repoUrl"
@@ -319,12 +252,16 @@ export default function ArchitecturePage() {
                       Architecture Diagram
                     </h3>
                     <div className="flex items-center gap-2">
-                      <ViewModeToggle 
-                        viewMode={diagramViewMode} 
-                        setViewMode={setDiagramViewMode} 
+                      <ViewModeToggle
+                        viewMode={diagramViewMode}
+                        setViewMode={setDiagramViewMode}
                       />
                       <ActionButton
-                        onClick={diagramViewMode === "preview" ? downloadSvgAsPng : handleCopyCode}
+                        onClick={
+                          diagramViewMode === "preview"
+                            ? downloadSvgAsPng
+                            : handleCopyCode
+                        }
                         icon={
                           diagramViewMode === "preview" ? (
                             <Download className="h-4 w-4" />
@@ -337,7 +274,10 @@ export default function ArchitecturePage() {
                       />
                     </div>
                   </div>
-                  <Mermaid chart={generatedDiagram} viewMode={diagramViewMode} />
+                  <Mermaid
+                    chart={generatedDiagram}
+                    viewMode={diagramViewMode}
+                  />
                 </div>
 
                 {repomixOutput && (
@@ -371,4 +311,4 @@ export default function ArchitecturePage() {
       <Toaster />
     </>
   );
-} 
+}

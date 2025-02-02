@@ -1,8 +1,8 @@
 import { Button } from "./ui/button";
-import { Eye, Code } from "lucide-react";
+import { Eye, Edit } from "lucide-react";
 import { cn } from "~/lib/utils";
 
-export type ViewMode = "preview" | "code";
+export type ViewMode = "preview" | "edit";
 
 interface ToggleButtonProps {
   active: boolean;
@@ -11,7 +11,12 @@ interface ToggleButtonProps {
   children: React.ReactNode;
 }
 
-const ToggleButton = ({ active, onClick, icon, children }: ToggleButtonProps) => (
+const ToggleButton = ({
+  active,
+  onClick,
+  icon,
+  children,
+}: ToggleButtonProps) => (
   <Button
     variant="ghost"
     size="sm"
@@ -44,12 +49,12 @@ export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
         Preview
       </ToggleButton>
       <ToggleButton
-        active={viewMode === "code"}
-        onClick={() => setViewMode("code")}
-        icon={<Code className="h-4 w-4" />}
+        active={viewMode === "edit"}
+        onClick={() => setViewMode("edit")}
+        icon={<Edit className="h-4 w-4" />}
       >
-        Code
+        Edit
       </ToggleButton>
     </div>
   );
-} 
+}

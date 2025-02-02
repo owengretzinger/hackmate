@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { generateReadmeWithAI } from "~/utils/vertex-ai";
+import { generateArchitectureDiagram } from "~/utils/vertex-ai";
 import { packRepositoryWithRepomix } from "~/utils/repomix";
 
 type GenerateArchitectureResponse =
@@ -28,7 +28,9 @@ export const architectureRouter = createTRPCRouter({
 
         // Generate diagram using Vertex AI
         console.log("Generating content with Vertex AI...");
-        const result = await generateReadmeWithAI(repomixResult.packedContent);
+        const result = await generateArchitectureDiagram(
+          repomixResult.packedContent,
+        );
 
         return {
           success: true,
