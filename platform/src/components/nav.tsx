@@ -3,26 +3,41 @@ import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { auth, signOut } from "~/server/auth";
 
+const links = [
+  {
+    href: "/projects",
+    label: "Projects",
+  },
+  {
+    href: "/inspiration",
+    label: "Inspiration",
+  },
+  {
+    href: "/documentation",
+    label: "Documentation",
+  },
+  {
+    href: "/pitch",
+    label: "Pitch",
+  },
+];
+
 export async function Nav() {
   const session = await auth();
 
   return (
-    <nav className="border-b w-full">
-      <div className="mx-auto max-w-7xl container flex h-14 items-center justify-between px-4">
+    <nav className="w-full border-b">
+      <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center space-x-2">
             <span className="font-bold">HackMate</span>
           </Link>
           <div className="flex items-center text-sm font-medium">
-            <Link href="/inspiration">
-              <Button variant="ghost">Inspiration</Button>
-            </Link>
-            <Link href="/documentation">
-              <Button variant="ghost">Documentation Generator</Button>
-            </Link>
-            <Link href="/pitch">
-              <Button variant="ghost">Pitch Assistant</Button>
-            </Link>
+            {links.map((link) => (
+              <Link href={link.href} key={link.href}>
+                <Button variant="ghost">{link.label}</Button>
+              </Link>
+            ))}
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -34,7 +49,9 @@ export async function Nav() {
                 await signOut();
               }}
             >
-              <Button variant="ghost" type="submit">Sign out</Button>
+              <Button variant="ghost" type="submit">
+                Sign out
+              </Button>
             </form>
           ) : (
             <Link href="/signin">
@@ -45,4 +62,4 @@ export async function Nav() {
       </div>
     </nav>
   );
-} 
+}

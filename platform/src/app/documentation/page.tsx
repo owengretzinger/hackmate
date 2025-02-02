@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -36,6 +36,7 @@ import {
 import Mermaid from "~/components/mermaid";
 import { cn } from "~/lib/utils";
 import ReactMarkdown from 'react-markdown';
+import { useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
@@ -107,46 +108,6 @@ const ActionButton = ({ onClick, icon }: ActionButtonProps) => (
   </Button>
 );
 
-interface UrlFormProps {
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
-  isLoading: boolean;
-}
-
-const UrlForm = ({ onSubmit, isLoading }: UrlFormProps) => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      repoUrl: "",
-    },
-  });
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="repoUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Repository URL</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="https://github.com/user/repo"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Generating..." : "Generate README"}
-        </Button>
-      </form>
-    </Form>
-  );
-};
-
 interface ContentViewProps {
   viewMode: "preview" | "code";
   content: string;
@@ -170,6 +131,9 @@ const ContentView = ({ viewMode, content, className }: ContentViewProps) => {
 };
 
 export default function ReadmePage() {
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId");
+
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
   const [generatedDiagram, setGeneratedDiagram] = useState<string | null>(null);
   const [repomixOutput, setRepomixOutput] = useState<string | null>(null);
@@ -181,8 +145,27 @@ export default function ReadmePage() {
   const [isReadmeCopied, setIsReadmeCopied] = useState(false);
   const { toast } = useToast();
 
+  const { data: project } = api.userProjects.getById.useQuery(
+    { id: projectId! },
+    {
+      enabled: !!projectId,
+    },
+  );
+
+  // Set initial content from project
+  useEffect(() => {
+    if (project) {
+      if (project.readme) {
+        setGeneratedReadme(project.readme);
+      }
+      if (project.architectureDiagram) {
+        setGeneratedDiagram(project.architectureDiagram);
+      }
+    }
+  }, [project]);
+
   const generateReadme = api.documentation.generateReadme.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (!data.success) {
         toast({
           variant: "destructive",
@@ -199,6 +182,15 @@ export default function ReadmePage() {
         setGeneratedReadme(data.readme);
         setGeneratedDiagram(data.diagram);
         setRepomixOutput(data.repomixOutput);
+
+        // If we have a project ID, update the project with the generated content
+        if (projectId) {
+          await updateProject.mutateAsync({
+            id: projectId,
+            readme: data.readme,
+            architectureDiagram: data.diagram,
+          });
+        }
       }
       setIsLoading(false);
     },
@@ -214,6 +206,36 @@ export default function ReadmePage() {
       setRepomixOutput(null);
     },
   });
+
+  const updateProject = api.userProjects.update.useMutation({
+    onSuccess: () => {
+      toast({
+        description: "Project updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        description: error.message,
+      });
+    },
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      repoUrl: project?.githubUrl ?? "",
+    },
+  });
+
+  // Update form when project loads
+  useEffect(() => {
+    if (project?.githubUrl) {
+      form.reset({
+        repoUrl: project.githubUrl,
+      });
+    }
+  }, [project, form]);
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -297,12 +319,41 @@ export default function ReadmePage() {
           <CardHeader>
             <CardTitle>Documentation Generator</CardTitle>
             <CardDescription>
-              Enter a public GitHub repository URL to generate a README file and
-              architecture diagram using AI.
+              {project ? (
+                <>Generating documentation for {project.name}</>
+              ) : (
+                <>
+                  Enter a public GitHub repository URL to generate a README file and
+                  architecture diagram using AI.
+                </>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <UrlForm onSubmit={handleSubmit} isLoading={isLoading} />
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+                <FormField
+                  control={form.control}
+                  name="repoUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Repository URL</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://github.com/user/repo"
+                          {...field}
+                          disabled={!!project}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Generating..." : "Generate README"}
+                </Button>
+              </form>
+            </Form>
 
             {(generatedReadme ?? generatedDiagram) && (
               <div className="mt-8 space-y-8">

@@ -56,6 +56,7 @@ export const users = createTable("user", {
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
+  projects: many(userProjects),
 }));
 
 export const accounts = createTable(
@@ -174,3 +175,21 @@ export const hackathonProjects = createTable('hackathon_projects', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+export const userProjects = createTable('user_projects', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id),
+  name: text('name').notNull(),
+  githubUrl: text('github_url').notNull(),
+  readme: text('readme'),
+  architectureDiagram: text('architecture_diagram'),
+  pitchDraft: text('pitch_draft'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const userProjectsRelations = relations(userProjects, ({ one }) => ({
+  user: one(users, { fields: [userProjects.userId], references: [users.id] }),
+}));

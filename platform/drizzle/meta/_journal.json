@@ -15,6 +15,13 @@
       "when": 1738446383892,
       "tag": "0001_volatile_butterfly",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1738464462827,
+      "tag": "0002_worried_wendell_rand",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@ import { inspirationRouter } from "./routers/inspiration";
 import { pitchRouter } from "./routers/pitch";
 import { createCallerFactory } from "~/server/api/trpc";
 import { hackathonScraperRouter } from "./routers/hackathon-scraper";
+import { userProjectsRouter } from "./routers/user-projects";
 
 /**
  * This is the primary router for your server.
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   inspiration: inspirationRouter,
   pitch: pitchRouter,
   hackathonScraper: hackathonScraperRouter,
+  userProjects: userProjectsRouter,
 });
 
 // export type definition of API
