@@ -22,7 +22,7 @@ export default async function Home() {
             </div>
             <div className="relative mx-auto max-w-screen-lg">
               <Image
-                src="/demo-screenshot.png"
+                src="/screenshots/readme-generator-2.png"
                 alt="HackMate Demo"
                 className="aspect-video max-h-[500px] w-full rounded-xl object-cover"
                 width={1000}
