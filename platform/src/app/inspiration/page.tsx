@@ -39,13 +39,21 @@ export default function InspirationPage() {
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       refetchOnMount: false,
+      trpc: {
+        context: {
+          skipBatch: true, // Prevent batching of queries
+        },
+      },
     },
   );
-  const { data: totalProjects } = api.hackathon.getTotalProjectCount.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
-  });
+  const { data: totalProjects } = api.hackathon.getTotalProjectCount.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
+    },
+  );
   const [currentProjectIndex, setCurrentProjectIndex] = useState<number>(0);
   const [viewedProjectCount, setViewedProjectCount] = useState<number>(1);
   const [expandedDescriptions, setExpandedDescriptions] = useState<
@@ -53,39 +61,51 @@ export default function InspirationPage() {
   >({});
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [newProjectsReady, setNewProjectsReady] = useState<typeof projects | undefined>(undefined);
 
   useEffect(() => {
-    if (projects?.length) {
-      // Set initial project to first one since they're already random
+    // Only set initial project index on first mount
+    if (!projects?.length) return;
+    
+    // If we have new projects ready and we're at the end of current projects
+    if (newProjectsReady && currentProjectIndex === projects.length - 1) {
       setCurrentProjectIndex(0);
+      setNewProjectsReady(undefined);
     }
-  }, [projects]);
+  }, [projects, currentProjectIndex, newProjectsReady]);
 
   useEffect(() => {
     // Handle spacebar press to fetch new random projects
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.code === "Space" && projects?.length) {
         e.preventDefault(); // Prevent page scroll
-        void refetch(); // Fetch new random projects
-        setCurrentProjectIndex(0); // Reset to first project
-        setViewedProjectCount(count => count + 1); // Increment the count
+        if (currentProjectIndex === projects.length - 1) {
+          void refetch().then((result) => {
+            if (result.data) setNewProjectsReady(result.data);
+          });
+          // Don't reset index yet - wait for user to press space again
+        } else {
+          setCurrentProjectIndex((prev) => prev + 1);
+        }
+        setViewedProjectCount((count) => count + 1);
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [projects, refetch]);
+  }, [projects, refetch, currentProjectIndex]);
 
   const handleNextProject = () => {
     if (projects?.length) {
       if (currentProjectIndex === projects.length - 1) {
-        void refetch(); // If we're at the end, fetch new random projects
-        setCurrentProjectIndex(0);
-        setViewedProjectCount(count => count + 1); // Increment the count
+        void refetch().then((result) => {
+          if (result.data) setNewProjectsReady(result.data);
+        });
+        // Don't reset index yet - wait for next click
       } else {
-        setCurrentProjectIndex((prev) => prev + 1); // Otherwise go to next project
-        setViewedProjectCount(count => count + 1); // Increment the count
+        setCurrentProjectIndex((prev) => prev + 1);
       }
+      setViewedProjectCount((count) => count + 1);
     }
   };
 
@@ -247,7 +267,7 @@ export default function InspirationPage() {
                       href={member.profileUrl ?? "#"}
                       target="_blank"
                       onClick={(e) => !member.profileUrl && e.preventDefault()}
-                      className={`group flex items-center gap-2 ${member.profileUrl ? 'hover:opacity-80' : 'cursor-default'}`}
+                      className={`group flex items-center gap-2 ${member.profileUrl ? "hover:opacity-80" : "cursor-default"}`}
                     >
                       {member.avatarUrl ? (
                         <div className="relative h-6 w-6 overflow-hidden rounded-full">
@@ -261,7 +281,9 @@ export default function InspirationPage() {
                       ) : (
                         <div className="h-6 w-6 rounded-full bg-muted" />
                       )}
-                      <span className={`text-xs ${member.profileUrl ? 'group-hover:underline' : 'text-muted-foreground'}`}>
+                      <span
+                        className={`text-xs ${member.profileUrl ? "group-hover:underline" : "text-muted-foreground"}`}
+                      >
                         {member.name || "Anonymous"}
                       </span>
                     </Link>
@@ -486,9 +508,12 @@ export default function InspirationPage() {
                     : "unknown"}
                 </span>
               </div>
-                <span>•</span>
+              <span>•</span>
               <div className="flex items-center gap-1">
-                <span>Project {viewedProjectCount}/{totalProjects?.toLocaleString() ?? "..."}</span>
+                <span>
+                  Project {viewedProjectCount}/
+                  {totalProjects?.toLocaleString() ?? "..."}
+                </span>
               </div>
             </div>
           </CardContent>

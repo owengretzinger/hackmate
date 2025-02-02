@@ -621,8 +621,9 @@ export const hackathonRouter = createTRPCRouter({
     }))
     .query(async ({ input }) => {
       // Using SQL's RANDOM() function to efficiently get random rows
+      // Add OFFSET 0 to prevent query caching
       const randomProjects = await db.query.hackathonProjects.findMany({
-        orderBy: sql`RANDOM()`,
+        orderBy: sql`RANDOM() OFFSET 0`,
         limit: input.limit,
       });
 
