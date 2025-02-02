@@ -1,5 +1,5 @@
 import { createTRPCRouter } from "~/server/api/trpc";
-import { readmeRouter } from "./routers/readme";
+import { documentationRouter } from "./routers/documentation";
 import { hackathonRouter } from "./routers/hackathon";
 import { createCallerFactory } from "~/server/api/trpc";
 
@@ -9,7 +9,7 @@ import { createCallerFactory } from "~/server/api/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  readme: readmeRouter,
+  documentation: documentationRouter,
   hackathon: hackathonRouter,
 });
 

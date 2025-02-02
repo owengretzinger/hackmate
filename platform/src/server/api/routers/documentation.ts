@@ -12,7 +12,7 @@ type GenerateReadmeResponse =
   | { success: true; readme: string; diagram: string; repomixOutput: string; error?: never }
   | { success: false; error: string; readme?: never; diagram?: never; repomixOutput?: never };
 
-export const readmeRouter = createTRPCRouter({
+export const documentationRouter = createTRPCRouter({
   generateReadme: publicProcedure
     .input(z.object({ repoUrl: z.string().url() }))
     .mutation(async ({ input }): Promise<GenerateReadmeResponse> => {

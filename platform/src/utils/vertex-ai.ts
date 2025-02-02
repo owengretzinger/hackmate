@@ -221,7 +221,7 @@ graph TD
     end
     
     subgraph BackendServices
-        Backend --> Generator[README Generator]
+        Backend --> Generator[Documentation Generator]
         Backend --> Auth[Auth Service]
         Generator --> VertexAI[Vertex AI]
         Generator --> Repomix[Repomix Parser]

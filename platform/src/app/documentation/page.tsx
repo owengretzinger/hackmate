@@ -181,7 +181,7 @@ export default function ReadmePage() {
   const [isReadmeCopied, setIsReadmeCopied] = useState(false);
   const { toast } = useToast();
 
-  const generateReadme = api.readme.generateReadme.useMutation({
+  const generateReadme = api.documentation.generateReadme.useMutation({
     onSuccess: (data) => {
       if (!data.success) {
         toast({
@@ -295,7 +295,7 @@ export default function ReadmePage() {
       <div className="container mx-auto py-10">
         <Card className="mx-auto max-w-4xl">
           <CardHeader>
-            <CardTitle>README Generator</CardTitle>
+            <CardTitle>Documentation Generator</CardTitle>
             <CardDescription>
               Enter a public GitHub repository URL to generate a README file and
               architecture diagram using AI.
