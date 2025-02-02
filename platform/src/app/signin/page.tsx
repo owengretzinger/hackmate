@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
@@ -27,8 +26,8 @@ export default async function SignInPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4">
-      <Card className="mx-auto w-full max-w-[400px]">
+    <div className="pointer-events-none -mt-14 flex min-h-screen flex-col items-center justify-center p-4">
+      <Card className="pointer-events-auto mx-auto w-full max-w-[400px]">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-semibold tracking-tight">
             Welcome to HackMate
@@ -61,22 +60,15 @@ export default async function SignInPage() {
           </div>
         </CardContent>
         <CardFooter>
-          <div className="flex w-full flex-col gap-2">
-            <form action={handleSignIn}>
-              <Button
-                type="submit"
-                className="flex w-full items-center justify-center gap-2"
-              >
-                <Image src="/google.svg" alt="Google" width={16} height={16} />
-                Sign in with Google
-              </Button>
-            </form>
-            <Link href="/" className="w-full">
-              <Button variant="outline" className="w-full">
-                Cancel
-              </Button>
-            </Link>
-          </div>
+          <form action={handleSignIn} className="w-full">
+            <Button
+              type="submit"
+              className="flex w-full items-center justify-center gap-2"
+            >
+              <Image src="/google.svg" alt="Google" width={16} height={16} />
+              Sign in with Google
+            </Button>
+          </form>
         </CardFooter>
       </Card>
     </div>

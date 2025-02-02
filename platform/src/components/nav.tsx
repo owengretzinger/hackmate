@@ -46,7 +46,7 @@ export async function Nav() {
             <form
               action={async () => {
                 "use server";
-                await signOut();
+                await signOut({ redirectTo: "/" });
               }}
             >
               <Button
