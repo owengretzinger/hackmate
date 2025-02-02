@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 import { generateText } from "~/utils/vertex-ai";
 
 const pitchTemplates = [
@@ -44,11 +44,11 @@ const pitchTemplates = [
 ];
 
 export const pitchRouter = createTRPCRouter({
-  getTemplates: protectedProcedure.query(() => {
+  getTemplates: publicProcedure.query(() => {
     return pitchTemplates;
   }),
 
-  generatePitchDraft: protectedProcedure
+  generatePitchDraft: publicProcedure
     .input(
       z.object({
         templateId: z.string(),
@@ -82,7 +82,7 @@ For each section, provide detailed talking points and suggestions for delivery.`
       return { pitchDraft };
     }),
 
-  analyzePitchRecording: protectedProcedure
+  analyzePitchRecording: publicProcedure
     .input(
       z.object({
         transcription: z.string(),
