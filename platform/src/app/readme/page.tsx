@@ -24,7 +24,7 @@ import { useSearchParams } from "next/navigation";
 import { ViewModeToggle, type ViewMode } from "~/components/view-mode-toggle";
 import { ContentView } from "~/components/content-view";
 import { ActionButton } from "~/components/action-button";
-import { templates } from "~/components/readme-templates";
+import { templates } from "~/components/readme-templates/readme-templates";
 import { Label } from "~/components/ui/label";
 import {
   Collapsible,

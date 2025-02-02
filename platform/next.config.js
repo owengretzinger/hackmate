@@ -9,11 +9,21 @@ const config = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '*',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "*",
+        pathname: "/**",
       },
     ],
+  },
+  experimental: {
+    turbo: {
+      rules: {
+        "*.md": {
+          loaders: ["raw-loader"],
+          as: "*.js",
+        },
+      },
+    },
   },
 };
 

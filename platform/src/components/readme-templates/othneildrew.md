@@ -1,181 +1,4 @@
-export type Template = {
-  readonly id: string;
-  readonly name: string;
-  readonly description: string;
-  readonly content: string;
-};
-
-export const templates: readonly [Template, ...Template[]] = [
-  {
-    id: "standard",
-    name: "Standard",
-    description: "A comprehensive template suitable for most projects",
-    content: `# Project Title
-
-## Description
-A brief description of what this project does and who it's for.
-
-## Features
-- Feature 1
-- Feature 2
-- Feature 3
-
-## Technologies Used
-- Tech 1
-- Tech 2
-- Tech 3
-
-## Installation
-\`\`\`bash
-npm install my-project
-\`\`\`
-
-## Usage
-\`\`\`typescript
-import { myFunction } from 'my-project'
-
-// Example usage
-myFunction()
-\`\`\`
-
-## Contributing
-Contributions are always welcome!
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)`,
-  },
-  {
-    id: "minimal",
-    name: "Minimal",
-    description: "A concise template focusing on essential information",
-    content: `# Project Title
-
-## Description
-Brief description of the project.
-
-## Quick Start
-\`\`\`bash
-npm install
-npm start
-\`\`\`
-
-## Usage
-How to use the project.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)`,
-  },
-  {
-    id: "detailed",
-    name: "Detailed",
-    description: "An extensive template with in-depth documentation",
-    content: `# Project Title
-
-## Description
-Comprehensive description of what this project does and its key benefits.
-
-## Features
-- Feature 1 with detailed explanation
-- Feature 2 with detailed explanation
-- Feature 3 with detailed explanation
-
-## Technologies
-### Frontend
-- Tech 1
-- Tech 2
-
-### Backend
-- Tech 3
-- Tech 4
-
-### Infrastructure
-- Tech 5
-- Tech 6
-
-## Architecture
-High-level overview of the system architecture.
-
-## Installation
-### Prerequisites
-What things you need to install the software.
-
-### Setup
-Step by step installation guide:
-\`\`\`bash
-npm install
-npm run setup
-npm start
-\`\`\`
-
-## Configuration
-How to configure the project:
-\`\`\`typescript
-{
-  "key": "value",
-  "feature": {
-    "enabled": true
-  }
-}
-\`\`\`
-
-## Usage
-Detailed examples of how to use the project:
-
-### Basic Usage
-\`\`\`typescript
-import { feature } from 'project'
-
-feature.doSomething()
-\`\`\`
-
-### Advanced Usage
-\`\`\`typescript
-import { advancedFeature } from 'project'
-
-advancedFeature.configure({
-  option: 'value'
-})
-\`\`\`
-
-## API Documentation
-### Function 1
-\`\`\`typescript
-function doSomething(param: string): Promise<Result>
-\`\`\`
-
-### Function 2
-\`\`\`typescript
-function processData(data: Data): void
-\`\`\`
-
-## Testing
-How to run the tests:
-\`\`\`bash
-npm test
-\`\`\`
-
-## Contributing
-1. Fork the project
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
-## Deployment
-How to deploy the project:
-\`\`\`bash
-npm run build
-npm run deploy
-\`\`\`
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)`,
-  },
-  {
-    id: "othneildrew",
-    name: 'Othneil Drew\'s "Best README Template"',
-    description: "A comprehensive template suitable for most projects",
-    content: `<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
+<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a id="readme-top"></a>
 <!--
 *** Thanks for checking out the Best-README-Template. If you have a suggestion
@@ -271,7 +94,7 @@ Here's why:
 
 Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
 
-Use the \`BLANK_README.md\` to get started.
+Use the `BLANK_README.md` to get started.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -304,9 +127,9 @@ To get a local copy up and running follow these simple example steps.
 
 This is an example of how to list things you need to use the software and how to install them.
 * npm
-  \`\`\`sh
+  ```sh
   npm install npm@latest -g
-  \`\`\`
+  ```
 
 ### Installation
 
@@ -314,22 +137,22 @@ _Below is an example of how you can instruct your audience on installing and set
 
 1. Get a free API Key at [https://example.com](https://example.com)
 2. Clone the repo
-   \`\`\`sh
+   ```sh
    git clone https://github.com/github_username/repo_name.git
-   \`\`\`
+   ```
 3. Install NPM packages
-   \`\`\`sh
+   ```sh
    npm install
-   \`\`\`
-4. Enter your API in \`config.js\`
-   \`\`\`js
+   ```
+4. Enter your API in `config.js`
+   ```js
    const API_KEY = 'ENTER YOUR API';
-   \`\`\`
+   ```
 5. Change git remote url to avoid accidental pushes to base project
-   \`\`\`sh
+   ```sh
    git remote set-url origin github_username/repo_name
    git remote -v # confirm the changes
-   \`\`\`
+   ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -372,9 +195,9 @@ If you have a suggestion that would make this better, please fork the repo and c
 Don't forget to give the project a star! Thanks again!
 
 1. Fork the Project
-2. Create your Feature Branch (\`git checkout -b feature/AmazingFeature\`)
-3. Commit your Changes (\`git commit -m 'Add some AmazingFeature'\`)
-4. Push to the Branch (\`git push origin feature/AmazingFeature\`)
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ### Top contributors:
@@ -390,7 +213,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the Unlicense License. See \`LICENSE.txt\` for more information.
+Distributed under the Unlicense License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -455,6 +278,4 @@ Use this space to list resources you find helpful and would like to give credit 
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
-[JQuery-url]: https://jquery.com `,
-  },
-];
+[JQuery-url]: https://jquery.com 
