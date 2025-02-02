@@ -628,4 +628,11 @@ export const hackathonRouter = createTRPCRouter({
 
       return randomProjects;
     }),
+
+  getTotalProjectCount: publicProcedure
+    .query(async () => {
+      const result = await db.select({ count: sql<number>`count(*)` })
+        .from(hackathonProjects);
+      return result[0]?.count ?? 0;
+    }),
 });

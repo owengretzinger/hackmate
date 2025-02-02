@@ -41,7 +41,13 @@ export default function InspirationPage() {
       refetchOnMount: false,
     },
   );
+  const { data: totalProjects } = api.hackathon.getTotalProjectCount.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
   const [currentProjectIndex, setCurrentProjectIndex] = useState<number>(0);
+  const [viewedProjectCount, setViewedProjectCount] = useState<number>(1);
   const [expandedDescriptions, setExpandedDescriptions] = useState<
     Record<string, boolean>
   >({});
@@ -62,6 +68,7 @@ export default function InspirationPage() {
         e.preventDefault(); // Prevent page scroll
         void refetch(); // Fetch new random projects
         setCurrentProjectIndex(0); // Reset to first project
+        setViewedProjectCount(count => count + 1); // Increment the count
       }
     };
 
@@ -74,8 +81,10 @@ export default function InspirationPage() {
       if (currentProjectIndex === projects.length - 1) {
         void refetch(); // If we're at the end, fetch new random projects
         setCurrentProjectIndex(0);
+        setViewedProjectCount(count => count + 1); // Increment the count
       } else {
         setCurrentProjectIndex((prev) => prev + 1); // Otherwise go to next project
+        setViewedProjectCount(count => count + 1); // Increment the count
       }
     }
   };
@@ -464,16 +473,22 @@ export default function InspirationPage() {
             )}
 
             {/* Last Updated */}
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>
-                Retrieved{" "}
-                {currentProject.updatedAt
-                  ? formatDistanceToNow(new Date(currentProject.updatedAt), {
-                      addSuffix: true,
-                    })
-                  : "unknown"}
-              </span>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>
+                  Retrieved{" "}
+                  {currentProject.updatedAt
+                    ? formatDistanceToNow(new Date(currentProject.updatedAt), {
+                        addSuffix: true,
+                      })
+                    : "unknown"}
+                </span>
+              </div>
+                <span>•</span>
+              <div className="flex items-center gap-1">
+                <span>Project {viewedProjectCount}/{totalProjects?.toLocaleString() ?? "..."}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
