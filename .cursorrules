@@ -5,7 +5,7 @@
 - Using cloud-sql-proxy postgres
 - T3 project is inside `/platform` directory
 - Always gather relevant context before answering or generating code
-- Always use shadcn (add components using `npx shadcn@latest add <component>`)
+- Always use shadcn (add components using `npx shadcn@latest add <component>` DO NOT USE `shadcn-ui`)
 - Always check current working directory before running commands
 
 ## Project Context

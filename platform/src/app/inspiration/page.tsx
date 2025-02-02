@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { api } from "~/trpc/react";
 import {
   Card,
@@ -12,13 +12,28 @@ import {
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Github, Heart, MessageCircle, Youtube, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import {
+  Github,
+  Heart,
+  MessageCircle,
+  Youtube,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
 
 export default function InspirationPage() {
-  const { data: projects, isLoading, refetch } = api.hackathon.getRandomProjects.useQuery(
+  const {
+    data: projects,
+    isLoading,
+    refetch,
+  } = api.hackathon.getRandomProjects.useQuery(
     { limit: 10 },
     {
       refetchOnWindowFocus: false,
@@ -27,7 +42,11 @@ export default function InspirationPage() {
     },
   );
   const [currentProjectIndex, setCurrentProjectIndex] = useState<number>(0);
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
+  const [expandedDescriptions, setExpandedDescriptions] = useState<
+    Record<string, boolean>
+  >({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (projects?.length) {
@@ -56,17 +75,59 @@ export default function InspirationPage() {
         void refetch(); // If we're at the end, fetch new random projects
         setCurrentProjectIndex(0);
       } else {
-        setCurrentProjectIndex(prev => prev + 1); // Otherwise go to next project
+        setCurrentProjectIndex((prev) => prev + 1); // Otherwise go to next project
       }
     }
   };
 
   const toggleDescription = (projectId: string) => {
-    setExpandedDescriptions(prev => ({
+    setExpandedDescriptions((prev) => ({
       ...prev,
-      [projectId]: !prev[projectId]
+      [projectId]: !prev[projectId],
     }));
   };
+
+  const handleNextImage = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      const currentProject = projects?.[currentProjectIndex];
+      if (!currentProject) return;
+      const totalImages = currentProject.galleryImages.length;
+      setCurrentImageIndex((prev) => (prev + 1) % totalImages);
+    },
+    [projects, currentProjectIndex],
+  );
+
+  const handlePrevImage = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      const currentProject = projects?.[currentProjectIndex];
+      if (!currentProject) return;
+      const totalImages = currentProject.galleryImages.length;
+      setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+    },
+    [projects, currentProjectIndex],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!modalOpen) return;
+      if (e.key === "ArrowRight") handleNextImage();
+      if (e.key === "ArrowLeft") handlePrevImage();
+    },
+    [modalOpen, handleNextImage, handlePrevImage],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalOpen, handleKeyDown]);
+
+  // Reset image index when project changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+    setModalOpen(false);
+  }, [currentProjectIndex]);
 
   if (isLoading) {
     return (
@@ -229,47 +290,131 @@ export default function InspirationPage() {
 
           <CardContent className="flex flex-col gap-6">
             {/* Gallery */}
-            {(currentProject.galleryImages.length > 0 || currentProject.thumbnail) && (
-              <div className="grid grid-cols-2 gap-4">
-                {/* Main Image - either first gallery image or thumbnail */}
-                <div className="col-span-2 relative aspect-video overflow-hidden rounded-lg">
-                  <Image
-                    src={currentProject.galleryImages[0]?.url ?? currentProject.thumbnail ?? ''}
-                    alt={`${currentProject.title} - Main Image`}
-                    fill
-                    className="object-cover"
-                  />
+            {(currentProject.galleryImages.length > 0 ||
+              currentProject.thumbnail) && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Main Image - either first gallery image or thumbnail */}
+                  <div
+                    className="relative col-span-2 aspect-video cursor-pointer overflow-hidden rounded-lg transition-opacity hover:opacity-95"
+                    onClick={() => {
+                      setCurrentImageIndex(0);
+                      setModalOpen(true);
+                    }}
+                  >
+                    <Image
+                      src={
+                        currentProject.galleryImages[0]?.url ??
+                        currentProject.thumbnail ??
+                        ""
+                      }
+                      alt={`${currentProject.title} - Main Image`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+
+                  {/* Additional Gallery Images */}
+                  {currentProject.galleryImages
+                    .slice(1, 2)
+                    .map((image, index) => (
+                      <div
+                        key={index}
+                        className="relative aspect-video cursor-pointer overflow-hidden rounded-lg transition-opacity hover:opacity-95"
+                        onClick={() => {
+                          setCurrentImageIndex(index + 1);
+                          setModalOpen(true);
+                        }}
+                      >
+                        <Image
+                          src={image.url}
+                          alt={`${currentProject.title} - Gallery Image ${index + 2}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
+
+                  {/* Show remaining count if there are more images */}
+                  {currentProject.galleryImages.length > 2 &&
+                    currentProject.galleryImages[2] && (
+                      <div
+                        className="relative aspect-video cursor-pointer overflow-hidden rounded-lg transition-opacity hover:opacity-95"
+                        onClick={() => {
+                          setCurrentImageIndex(2);
+                          setModalOpen(true);
+                        }}
+                      >
+                        <Image
+                          src={currentProject.galleryImages[2].url}
+                          alt={`${currentProject.title} - Gallery Image 3`}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                          <span className="text-lg font-medium text-white">
+                            +{currentProject.galleryImages.length - 2} more
+                          </span>
+                        </div>
+                      </div>
+                    )}
                 </div>
-                
-                {/* Additional Gallery Images */}
-                {currentProject.galleryImages.slice(1, 3).map((image, index) => (
-                  <div key={index} className="relative aspect-video overflow-hidden rounded-lg">
-                    <Image
-                      src={image.url}
-                      alt={`${currentProject.title} - Gallery Image ${index + 2}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
-                
-                {/* Show remaining count if there are more images */}
-                {currentProject.galleryImages.length > 3 && (
-                  <div className="relative aspect-video overflow-hidden rounded-lg">
-                    <Image
-                      src={currentProject.galleryImages[3]!.url}
-                      alt={`${currentProject.title} - Gallery Image 4`}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <span className="text-lg font-medium text-white">
-                        +{currentProject.galleryImages.length - 3} more
-                      </span>
+
+                {/* Image Modal */}
+                <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+                  <DialogContent className="max-h-[95vh] max-w-[95vw] overflow-hidden border-none bg-transparent p-0">
+                    <DialogTitle className="sr-only">
+                      {currentProject.title} - Image Gallery
+                    </DialogTitle>
+                    <div className="relative h-full min-h-[80vh] w-full rounded-lg bg-black/90">
+                      {/* Navigation buttons */}
+                      {currentProject.galleryImages.length > 1 && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute left-4 top-1/2 z-50 -translate-y-1/2 text-white hover:bg-white/20"
+                            onClick={handlePrevImage}
+                          >
+                            <ChevronLeft className="h-8 w-8" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-4 top-1/2 z-50 -translate-y-1/2 text-white hover:bg-white/20"
+                            onClick={handleNextImage}
+                          >
+                            <ChevronRight className="h-8 w-8" />
+                          </Button>
+                        </>
+                      )}
+
+                      {/* Current image */}
+                      <div className="relative flex h-full w-full items-center justify-center p-4">
+                        <div className="relative h-full w-full">
+                          <Image
+                            src={
+                              currentProject.galleryImages[currentImageIndex]
+                                ?.url ??
+                              currentProject.thumbnail ??
+                              ""
+                            }
+                            alt={`${currentProject.title} - Gallery Image ${currentImageIndex + 1}`}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Image counter */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
+                        {currentImageIndex + 1} /{" "}
+                        {currentProject.galleryImages.length}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  </DialogContent>
+                </Dialog>
+              </>
             )}
 
             {/* Technologies */}
@@ -292,7 +437,9 @@ export default function InspirationPage() {
                   className={`prose prose-sm max-w-none text-muted-foreground dark:prose-invert [&_a:hover]:opacity-80 [&_a]:text-primary [&_a]:underline [&_em]:italic [&_h2]:mb-4 [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_p]:mb-4 [&_strong]:text-foreground ${
                     !expandedDescriptions[currentProject.id] && "line-clamp-3"
                   }`}
-                  dangerouslySetInnerHTML={{ __html: currentProject.description }}
+                  dangerouslySetInnerHTML={{
+                    __html: currentProject.description,
+                  }}
                 />
                 <Button
                   variant="ghost"
@@ -320,9 +467,12 @@ export default function InspirationPage() {
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               <span>
-                Retrieved {currentProject.updatedAt 
-                  ? formatDistanceToNow(new Date(currentProject.updatedAt), { addSuffix: true })
-                  : 'unknown'}
+                Retrieved{" "}
+                {currentProject.updatedAt
+                  ? formatDistanceToNow(new Date(currentProject.updatedAt), {
+                      addSuffix: true,
+                    })
+                  : "unknown"}
               </span>
             </div>
           </CardContent>
