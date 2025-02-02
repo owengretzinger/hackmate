@@ -54,7 +54,8 @@ export default function ProjectsPage() {
   const { toast } = useToast();
 
   const utils = api.useUtils();
-  const { data: projects, isLoading: isLoadingProjects } = api.userProjects.getAll.useQuery();
+  const { data: projects, isLoading: isLoadingProjects } =
+    api.userProjects.getAll.useQuery();
 
   const createProject = api.userProjects.create.useMutation({
     onSuccess: () => {
@@ -149,7 +150,10 @@ export default function ProjectsPage() {
                   Manage your projects and their generated content
                 </CardDescription>
               </div>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />
@@ -160,11 +164,15 @@ export default function ProjectsPage() {
                   <DialogHeader>
                     <DialogTitle>Add New Project</DialogTitle>
                     <DialogDescription>
-                      Add a new project to generate documentation and pitch content for
+                      Add a new project to generate documentation and pitch
+                      content for
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...createForm}>
-                    <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+                    <form
+                      onSubmit={createForm.handleSubmit(onCreateSubmit)}
+                      className="space-y-4"
+                    >
                       <FormField
                         control={createForm.control}
                         name="name"
@@ -172,7 +180,10 @@ export default function ProjectsPage() {
                           <FormItem>
                             <FormLabel>Project Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="My Awesome Project" {...field} />
+                              <Input
+                                placeholder="My Awesome Project"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -185,15 +196,23 @@ export default function ProjectsPage() {
                           <FormItem>
                             <FormLabel>GitHub URL</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://github.com/user/repo" {...field} />
+                              <Input
+                                placeholder="https://github.com/user/repo"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                       <DialogFooter>
-                        <Button type="submit" disabled={createProject.isPending}>
-                          {createProject.isPending ? "Creating..." : "Create Project"}
+                        <Button
+                          type="submit"
+                          disabled={createProject.isPending}
+                        >
+                          {createProject.isPending
+                            ? "Creating..."
+                            : "Create Project"}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -216,7 +235,9 @@ export default function ProjectsPage() {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                          <CardTitle className="text-xl">{project.name}</CardTitle>
+                          <CardTitle className="text-xl">
+                            {project.name}
+                          </CardTitle>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Link
                               href={project.githubUrl}
@@ -229,7 +250,10 @@ export default function ProjectsPage() {
                             <span>•</span>
                             <span>
                               Created{" "}
-                              {format(new Date(project.createdAt!), "MMM d, yyyy")}
+                              {format(
+                                new Date(project.createdAt!),
+                                "MMM d, yyyy",
+                              )}
                             </span>
                           </div>
                         </div>
@@ -237,9 +261,7 @@ export default function ProjectsPage() {
                           <Dialog
                             open={editingProject?.id === project.id}
                             onOpenChange={(open) =>
-                              setEditingProject(
-                                open ? { ...project } : null,
-                              )
+                              setEditingProject(open ? { ...project } : null)
                             }
                           >
                             <DialogTrigger asChild>
@@ -320,16 +342,16 @@ export default function ProjectsPage() {
                     <CardContent>
                       <div className="grid grid-cols-3 gap-4">
                         <Link
-                          href={`/documentation?projectId=${project.id}`}
+                          href={`/readme?projectId=${project.id}`}
                           className="group block space-y-2 rounded-lg border p-4 hover:border-foreground"
                         >
                           <h3 className="font-medium group-hover:underline">
-                            Documentation
+                            README
                           </h3>
                           <p className="text-sm text-muted-foreground">
                             {project.readme
-                              ? "View generated documentation"
-                              : "Generate documentation"}
+                              ? "View generated README"
+                              : "Generate README"}
                           </p>
                         </Link>
                         <Link
@@ -345,14 +367,19 @@ export default function ProjectsPage() {
                               : "Generate pitch"}
                           </p>
                         </Link>
-                        <div className="space-y-2 rounded-lg border p-4">
-                          <h3 className="font-medium">Architecture</h3>
+                        <Link
+                          href={`/architecture?projectId=${project.id}`}
+                          className="group block space-y-2 rounded-lg border p-4 hover:border-foreground"
+                        >
+                          <h3 className="font-medium group-hover:underline">
+                            Architecture
+                          </h3>
                           <p className="text-sm text-muted-foreground">
                             {project.architectureDiagram
                               ? "View architecture diagram"
                               : "Generate architecture diagram"}
                           </p>
-                        </div>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
@@ -365,4 +392,4 @@ export default function ProjectsPage() {
       <Toaster />
     </>
   );
-} 
+}

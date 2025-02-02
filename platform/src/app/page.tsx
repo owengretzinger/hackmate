@@ -51,7 +51,7 @@ export default async function Home() {
                 className="mx-6 hidden h-auto w-[2px] bg-gradient-to-b from-muted via-transparent to-muted md:block"
               />
               <Link
-                href="/documentation"
+                href="/readme"
                 className="flex grow basis-0 flex-col rounded-md bg-background p-4 transition-colors hover:bg-accent"
               >
                 <div className="mb-6 flex size-10 items-center justify-center rounded-full bg-background drop-shadow-lg">
