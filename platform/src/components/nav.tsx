@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { auth, signOut } from "~/server/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import Image from "next/image";
 
 const links = [
   {
@@ -31,6 +32,20 @@ export async function Nav() {
       <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center space-x-2">
+            <Image
+              src="/hackmate_logo_black.webp"
+              alt="HackMate Logo"
+              width={24}
+              height={24}
+              className="dark:hidden"
+            />
+            <Image
+              src="/hackmate_logo_white.webp"
+              alt="HackMate Logo"
+              width={24}
+              height={24}
+              className="hidden dark:block"
+            />
             <span className="font-bold">HackMate</span>
           </Link>
           <div className="flex items-center text-sm font-medium">
