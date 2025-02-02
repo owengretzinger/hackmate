@@ -3,14 +3,14 @@ import othneildrew from "./othneildrew.md";
 import louis3797 from "./louis3797.md";
 import owen from "./owen.md";
 
-export type Template = {
+export type ReadmeTemplate = {
   readonly id: string;
   readonly name: string;
   readonly description: string;
   readonly content: string;
 };
 
-export const templates: readonly [Template, ...Template[]] = [
+export const templates: readonly [ReadmeTemplate, ...ReadmeTemplate[]] = [
   {
     id: "minimal",
     name: "Minimal",

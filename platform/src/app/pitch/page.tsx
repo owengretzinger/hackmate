@@ -20,6 +20,7 @@ import { ActionButton } from "~/components/action-button";
 import { useToast } from "~/hooks/use-toast";
 import { Toaster } from "~/components/ui/toaster";
 import { useSearchParams } from "next/navigation";
+import { pitchTemplates } from "~/components/pitch-templates";
 
 export default function PitchPage() {
   const searchParams = useSearchParams();
@@ -42,7 +43,6 @@ export default function PitchPage() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const { toast } = useToast();
 
-  const { data: templates } = api.pitch.getTemplates.useQuery();
   const { data: project } = api.userProjects.getById.useQuery(
     { id: projectId! },
     {
@@ -216,7 +216,7 @@ export default function PitchPage() {
 
           <TabsContent value="templates" className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {templates?.map((template) => (
+              {pitchTemplates.map((template) => (
                 <Card
                   key={template.id}
                   className={`cursor-pointer transition-all hover:shadow-lg ${
