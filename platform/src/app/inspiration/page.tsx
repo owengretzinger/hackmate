@@ -244,9 +244,10 @@ export default function InspirationPage() {
                   {currentProject.teamMembers.map((member, i) => (
                     <Link
                       key={i}
-                      href={member.profileUrl}
+                      href={member.profileUrl ?? "#"}
                       target="_blank"
-                      className="group flex items-center gap-2 hover:opacity-80"
+                      onClick={(e) => !member.profileUrl && e.preventDefault()}
+                      className={`group flex items-center gap-2 ${member.profileUrl ? 'hover:opacity-80' : 'cursor-default'}`}
                     >
                       {member.avatarUrl ? (
                         <div className="relative h-6 w-6 overflow-hidden rounded-full">
@@ -260,7 +261,7 @@ export default function InspirationPage() {
                       ) : (
                         <div className="h-6 w-6 rounded-full bg-muted" />
                       )}
-                      <span className="text-xs group-hover:underline">
+                      <span className={`text-xs ${member.profileUrl ? 'group-hover:underline' : 'text-muted-foreground'}`}>
                         {member.name || "Anonymous"}
                       </span>
                     </Link>
