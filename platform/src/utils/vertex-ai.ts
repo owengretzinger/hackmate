@@ -23,7 +23,7 @@ const vertex_ai = new VertexAI({
 
 // Select a model
 const model = vertex_ai.preview.getGenerativeModel({
-  model: "gemini-1.5-pro",
+  model: "gemini-1.5-flash",
   generationConfig: {
     maxOutputTokens: 2048,
     temperature: 0.4,
@@ -187,11 +187,17 @@ export async function generateArchitectureDiagram(
     const diagramPrompt = `You are a software architect tasked with creating a high-level Mermaid.js diagram that visualizes the core architecture of a GitHub repository.
 
 CRITICAL FORMATTING REQUIREMENTS:
-- DO NOT INCLUDE ANY MARKDOWN FORMATTING
-- DO NOT USE \`\`\`mermaid OR ANY OTHER BACKTICKS WHATSOEVER
-- START YOUR RESPONSE DIRECTLY WITH "graph TD"
-- ONLY RETURN THE RAW MERMAID.JS CODE
-- ANY DEVIATION FROM THESE REQUIREMENTS WILL RESULT IN FAILURE
+- Structure your response in two parts:
+  1. First, wrap your analysis in <thinking> tags
+  2. Then, wrap your Mermaid diagram in <diagram> tags
+- Inside the <thinking> tags:
+  - List all major components and technologies identified
+  - Explain key relationships and data flows
+  - Describe any logical groupings you plan to make
+- Inside the <diagram> tags:
+  - Start DIRECTLY with "graph TD"
+  - NO backticks or Mermaid tags
+  - Just the raw Mermaid.js code
 
 DIAGRAM CONTENT REQUIREMENTS:
 - Focus ONLY on the main components and their relationships
@@ -201,7 +207,7 @@ DIAGRAM CONTENT REQUIREMENTS:
 - Avoid showing individual functions or files
 
 TEMPLATE RULES - YOU MUST FOLLOW THESE EXACTLY:
-1. First line MUST be "graph TD"
+1. First line inside <diagram> MUST be "graph TD"
 2. Node IDs:
    - ONLY use simple letters (A, B, C) or words (Frontend, Backend)
    - NO special characters, dots, or spaces in IDs
@@ -210,23 +216,49 @@ TEMPLATE RULES - YOU MUST FOLLOW THESE EXACTLY:
 3. Node Labels:
    - ALL text with special characters MUST be in square brackets
    - Example: A[Authentication API] --> B[Database]
-4. Arrows:
+4. Arrows and Formatting:
    - ONLY use --> for connections
-   - NO other arrow types allowed
+   - Each connection MUST be on its own line
+   - NO multiple arrows on the same line
+   - NO spaces before or after arrows
+   - BAD: A --> B    C --> D
+   - GOOD: A --> B
+         C --> D
 5. Subgraphs:
    - MUST follow this exact format:
      subgraph Name
          content
      end
    - NO variations allowed
+   - Each subgraph must start on a new line
 
 Example of correct format:
+<thinking>
+Components identified:
+- Frontend: Next.js application
+- Backend API: Express server
+- Database: PostgreSQL
+- Authentication: JWT-based auth service
+
+Key relationships:
+- Frontend makes API calls to backend
+- Backend handles auth and data storage
+- Database stores user and application data
+
+Planned groupings:
+- Frontend layer
+- Backend services
+- Data storage
+</thinking>
+
+<diagram>
 graph TD
-    A[Frontend App] --> B[API Gateway]
-    subgraph Backend
-        B --> C[Auth Service]
-        C --> D[Database]
-    end
+A[Frontend App]-->B[API Gateway]
+subgraph Backend
+    B-->C[Auth Service]
+    C-->D[Database]
+end
+</diagram>
 
 Based on the repository content, show:
 1. Core system components (Frontend, Backend, Database, etc.)
@@ -238,16 +270,21 @@ HERE IS THE REPOSITORY CONTENT:
 
 ${repoContent}
 
-Remember: Your response must start DIRECTLY with "graph TD" - DO NOT WRAP IN ANY MERMAID TAGS, NO BACKTICKS, NO EXTRA TEXT.`;
+Remember: Structure your response with <thinking> tags followed by <diagram> tags. Inside <diagram>, start DIRECTLY with "graph TD" - NO BACKTICKS, NO EXTRA TEXT. Make a clean diagram with max 5 nodes per component. PREFER SIMPLER DIAGRAMS. AND KEEP IT HIGH LEVEL HIGHLIGHTING THE TECHNOLOGIES, NOT INDIVIDUAL ROUTES.`;
 
     const result = await model.generateContent(diagramPrompt);
-    let diagram = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const response = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!diagram) {
+    if (!response) {
       throw new Error("No response from AI model");
     }
 
-    // Clean up the response by removing any Mermaid markdown tags
+    // Extract just the diagram part using RegExp.exec()
+    const diagramRegex = /<diagram>([\s\S]*?)<\/diagram>/;
+    const diagramMatch = diagramRegex.exec(response);
+    let diagram = diagramMatch?.[1]?.trim() ?? response;
+
+    // Clean up the diagram by removing any Mermaid markdown tags
     diagram = diagram
       .replace(/```mermaid\n?/g, "") // Remove opening mermaid tag
       .replace(/```\n?/g, "") // Remove closing tag
