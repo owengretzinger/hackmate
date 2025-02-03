@@ -23,7 +23,7 @@ const vertex_ai = new VertexAI({
 
 // Select a model
 const model = vertex_ai.preview.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-1.5-pro",
   generationConfig: {
     maxOutputTokens: 2048,
     temperature: 0.4,
@@ -50,7 +50,7 @@ export type FileData = {
 
 export async function generateReadmeWithAI(
   repoContent: string,
-  templateId: string,
+  templateContent: string,
   additionalContext: string,
   files?: FileData[],
 ): Promise<GenerateReadmeResponse> {
@@ -64,33 +64,64 @@ export async function generateReadmeWithAI(
 
   try {
     // Process uploaded files
-    const fileContents = files?.map(file => 
-      `File: ${file.name} (${file.type})\n${file.content}\n---\n`
-    ).join('\n') ?? '';
+    const fileContents =
+      files
+        ?.map(
+          (file) => `File: ${file.name} (${file.type})\n${file.content}\n---\n`,
+        )
+        .join("\n") ?? "";
 
     const readmePrompt = `You are an expert technical writer tasked with creating a comprehensive README.md file for a GitHub repository.
-I will provide you with the repository's code content, template preference, additional context, and any uploaded files. Generate a detailed, well-structured README.md file.
 
-Template: ${templateId}
-Additional Context: ${additionalContext}
+CRITICAL FORMATTING REQUIREMENTS:
+- DO NOT wrap the output in markdown formatting tags like \`\`\`md (other code blocks are allowed)
+- START your response directly with the content
+- ONLY return the raw README content
+- ANY deviation from these requirements will result in failure
+- YOU MUST PRESERVE ALL HTML TAGS AND ATTRIBUTES EXACTLY AS SHOWN IN THE TEMPLATE
+- DO NOT MODIFY OR OMIT ANY HTML FORMATTING
+- INCLUDE ALL <div>, <p>, <h3>, <details>, <summary>, AND OTHER HTML TAGS
+- MAINTAIN ALL align="center" AND OTHER HTML ATTRIBUTES
+- KEEP THE EXACT SAME STRUCTURE INCLUDING NEWLINES AND SPACING
 
-${fileContents ? `Uploaded Files:\n${fileContents}\n` : ''}
+CONTENT REQUIREMENTS:
+- Create a detailed, well-structured README.md file
+- Make it engaging, professional, and informative
+- Use proper Markdown syntax for headings, lists, code blocks, etc.
+- Follow the template structure EXACTLY
+- Incorporate specific requirements from additional context
+- Include relevant information from uploaded files
+- NEVER skip or modify HTML formatting from the template
 
-The README should follow the selected template structure while incorporating any specific requirements from the additional context and uploaded files.
-Make the README engaging, professional, and informative. Use proper Markdown formatting.
+HERE IS THE EXACT TEMPLATE TO FOLLOW - COPY ITS STRUCTURE AND HTML EXACTLY:
+${templateContent}
 
-Here's the repository content:
+ADDITIONAL INSTRUCTIONS AND CONTEXT PROVIDED BY THE USER: ${additionalContext}
 
+${fileContents ? `FILE CONTENT UPLOADED BY THE USER:\n${fileContents}\n` : ""}
+
+REPOSITORY CONTENT:
 ${repoContent}
 
-Generate a README.md file based on this content, following the specified template and incorporating the additional context and uploaded files.`;
+Remember: 
+1. Start your response DIRECTLY with the README content
+2. DO NOT WRAP THE OUTPUT IN MARKDOWN FORMATTING TAGS
+3. PRESERVE ALL HTML TAGS AND ATTRIBUTES EXACTLY AS SHOWN IN THE TEMPLATE ABOVE
+4. FOLLOW THE TEMPLATE STRUCTURE PRECISELY
+5. COPY THE HTML STRUCTURE FROM THE TEMPLATE`;
 
     const result = await model.generateContent(readmePrompt);
-    const readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    let readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!readme) {
       throw new Error("No response from AI model");
     }
+
+    // Clean up the response by removing any markdown tags
+    readme = readme
+      .replace(/```md\n?/g, "") // Remove opening md tag
+      .replace(/```\n?/g, "") // Remove closing tag
+      .trim(); // Remove any extra whitespace
 
     return {
       readme,
@@ -155,14 +186,47 @@ export async function generateArchitectureDiagram(
   try {
     const diagramPrompt = `You are a software architect tasked with creating a high-level Mermaid.js diagram that visualizes the core architecture of a GitHub repository.
 
-IMPORTANT:
+CRITICAL FORMATTING REQUIREMENTS:
+- DO NOT INCLUDE ANY MARKDOWN FORMATTING
+- DO NOT USE \`\`\`mermaid OR ANY OTHER BACKTICKS WHATSOEVER
+- START YOUR RESPONSE DIRECTLY WITH "graph TD"
+- ONLY RETURN THE RAW MERMAID.JS CODE
+- ANY DEVIATION FROM THESE REQUIREMENTS WILL RESULT IN FAILURE
+
+DIAGRAM CONTENT REQUIREMENTS:
 - Focus ONLY on the main components and their relationships
 - Keep the diagram simple and clear (max 10-15 nodes)
 - Show the high-level flow, not implementation details
 - Group related components into subgraphs
 - Avoid showing individual functions or files
-- DO NOT include any markdown formatting or backticks in your response
-- Return ONLY the raw diagram code starting with "graph TD"
+
+TEMPLATE RULES - YOU MUST FOLLOW THESE EXACTLY:
+1. First line MUST be "graph TD"
+2. Node IDs:
+   - ONLY use simple letters (A, B, C) or words (Frontend, Backend)
+   - NO special characters, dots, or spaces in IDs
+   - Example: Frontend --> Backend (CORRECT)
+   - Example: frontend.api --> db (INCORRECT)
+3. Node Labels:
+   - ALL text with special characters MUST be in square brackets
+   - Example: A[Authentication API] --> B[Database]
+4. Arrows:
+   - ONLY use --> for connections
+   - NO other arrow types allowed
+5. Subgraphs:
+   - MUST follow this exact format:
+     subgraph Name
+         content
+     end
+   - NO variations allowed
+
+Example of correct format:
+graph TD
+    A[Frontend App] --> B[API Gateway]
+    subgraph Backend
+        B --> C[Auth Service]
+        C --> D[Database]
+    end
 
 Based on the repository content, show:
 1. Core system components (Frontend, Backend, Database, etc.)
@@ -170,30 +234,24 @@ Based on the repository content, show:
 3. Key external services and integrations
 4. Logical groupings using subgraphs
 
-CRITICAL SYNTAX RULES - FOLLOW THESE EXACTLY:
-1. Node IDs must be simple letters like A, B, C or words like Frontend, Backend (NO special characters)
-2. Put ALL text with special characters inside square brackets as labels
-3. NEVER use dots, curly braces, or special characters in node IDs
-4. Use only --> for arrows
-5. Subgraphs must follow this exact format:
-   subgraph Name
-       content
-   end
-6. Start your response directly with "graph TD" - no backticks, no markdown
-
-Here's the repository content:
+HERE IS THE REPOSITORY CONTENT:
 
 ${repoContent}
 
-Generate a HIGH-LEVEL Mermaid.js diagram that represents the core architecture. Start your response directly with "graph TD" without any backticks or markdown formatting.
-Remember: Keep it simple, clear, and focused on the big picture.`;
+Remember: Your response must start DIRECTLY with "graph TD" - DO NOT WRAP IN ANY MERMAID TAGS, NO BACKTICKS, NO EXTRA TEXT.`;
 
     const result = await model.generateContent(diagramPrompt);
-    const diagram = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    let diagram = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!diagram) {
       throw new Error("No response from AI model");
     }
+
+    // Clean up the response by removing any Mermaid markdown tags
+    diagram = diagram
+      .replace(/```mermaid\n?/g, "") // Remove opening mermaid tag
+      .replace(/```\n?/g, "") // Remove closing tag
+      .trim(); // Remove any extra whitespace
 
     return {
       diagram,
