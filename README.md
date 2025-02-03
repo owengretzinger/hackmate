@@ -67,8 +67,8 @@ HackMate empowers you to save time and focus on what you love—coding.
 ### Demo
 
 <div align="center">
-  <a href="https://youtu.be/mmdLophBzpY">
-    <img src="https://github.com/user-attachments/assets/bdcade77-bf08-4d9b-aa0d-e87a1058b1cf" alt="HackMate Demo">
+  <a href="https://youtu.be/sD66NuLWxFw">
+    <img src="https://github.com/user-attachments/assets/7f512512-e7f7-4b3d-985d-378583ef389f" alt="HackMate Demo">
   </a>
   <p>
     Click the image above to watch a demo of HackMate!
