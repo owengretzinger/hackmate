@@ -276,6 +276,7 @@ export default function InspirationPage() {
                             alt={member.name || "Team member"}
                             fill
                             className="object-cover"
+                            unoptimized
                           />
                         </div>
                       ) : (
@@ -343,6 +344,7 @@ export default function InspirationPage() {
                       alt={`${currentProject.title} - Main Image`}
                       fill
                       className="object-cover"
+                      unoptimized
                     />
                   </div>
 
@@ -363,6 +365,7 @@ export default function InspirationPage() {
                           alt={`${currentProject.title} - Gallery Image ${index + 2}`}
                           fill
                           className="object-cover"
+                          unoptimized
                         />
                       </div>
                     ))}
@@ -382,6 +385,7 @@ export default function InspirationPage() {
                           alt={`${currentProject.title} - Gallery Image 3`}
                           fill
                           className="object-cover"
+                          unoptimized
                         />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                           <span className="text-lg font-medium text-white">
@@ -434,6 +438,7 @@ export default function InspirationPage() {
                             alt={`${currentProject.title} - Gallery Image ${currentImageIndex + 1}`}
                             fill
                             className="object-contain"
+                            unoptimized
                           />
                         </div>
                       </div>
