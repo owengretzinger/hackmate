@@ -14,6 +14,7 @@ const config = {
         pathname: "/**",
       },
     ],
+    unoptimized: true,
   },
   experimental: {
     turbo: {
